@@ -1,4 +1,13 @@
 /* global $, document */
+
+/* Import header on to page */
+$(document).ready(function() {
+    'use strict';
+    $(function() {
+        $('.header-wrapper').load('/content/widgets/header.html');
+    })
+})
+
 /* Make navigation item 'active' on click */
 $(document).ready(function() {
     'use strict';
