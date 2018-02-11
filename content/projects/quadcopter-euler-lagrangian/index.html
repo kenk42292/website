@@ -1,0 +1,614 @@
+<h1>Introduction</h1>
+In this post, I derive the dynamics of a quadcopter in the t-configuration via the Lagrangian equations of motion, while describing the quadcopter attitude via 3-1-3 Euler angles.
+I do this by first showing the relations between the Euler angles, their derivatives, and the quadcopter angular velocities. Using these relations, I find an expression for translational and potential energy difference. With this expression, the equations of motions with respect to each of the rigid body's state variables are derived through the Lagrangian.
+<h1>General 3-1-3 Euler Rotation Equations</h1>
+We derived the transformation matrix for a $3$-$1$-$3$ Euler Angle in a previous <a href="http://localhost/wordpress/a-quick-overview-of-euler-angles/">post</a>, as follows:
+
+\begin{multline}
+T = \begin{bmatrix}
+c_\psi &amp; s_\psi &amp; 0 \\
+-s_\psi &amp; c_\psi &amp; 0 \\
+0 &amp; 0 &amp; 1
+\end{bmatrix}
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 \\
+0 &amp; c_\theta &amp; s_\theta \\
+0 &amp; -s_\theta &amp; c_\theta
+\end{bmatrix}
+\begin{bmatrix}
+c_\phi &amp; s_\phi &amp; 0 \\
+-s_\phi &amp; c_\phi &amp; 0 \\
+0 &amp; 0 &amp; 1
+\end{bmatrix} \\
+=
+\begin{bmatrix}
+c_\psi c_\phi - s_\psi c_\theta s_\phi &amp; c_\psi s_\phi + s_\psi c_\theta c_\phi &amp; s_\psi s_\theta \\
+-s_\psi c_\phi - c_\psi c_\theta s_\phi &amp; -s_\psi s_\phi + c_\psi c_\theta c_\phi &amp; c_\psi s_\theta \\
+s_\theta s_\phi &amp; -s_\theta c_\phi &amp; c_\theta
+\end{bmatrix} \tag{1}
+\end{multline}
+
+In another <a href="http://localhost/wordpress/angular-velocities-and-euler-angles/">post</a>, we derived the relation between Euler Angle parameters and the angular velocity vector.
+
+\begin{equation}
+\omega
+=
+\begin{bmatrix}
+\omega_x \\ \omega_y \\ \omega_z
+\end{bmatrix}
+=
+\begin{bmatrix}
+s_\psi s_\theta \dot \phi + c_\psi \dot \theta \\
+c_\psi s_\theta \dot \phi - s_\psi \dot \theta \\
+c_\theta \dot \phi + \dot \psi
+\end{bmatrix} \tag{2}
+\end{equation}
+<h1>The Lagrangian Equations of Motion</h1>
+The Lagrangian Equations of Motion are derived from the following equation:
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot q_i}\right)
+-
+\frac{\partial L}{\partial q_i}
+=
+\Phi_{q_i} \tag{3}
+\end{equation}
+<h2>Total System Energy</h2>
+In the above equation, $L$ denotes the difference between the kinetic ($T$) and potential ($U$) energy within the system. Therefore, $L$ can be expressed as:
+\begin{equation}
+L = T - U
+\end{equation}
+
+Further, $T$, as a combination of translational kinetic energy and rotational kinetic energy, can be expressed as:
+\begin{equation}
+T = T_{translational} + T_{rotational}
+\end{equation}
+
+\begin{equation}
+T_{translational} = \frac{1}{2}mv \cdot v
+\end{equation}
+
+&nbsp;
+
+Let's define $\overline{x}=x E_x + y E_y + z E_z$ as the center of mass of the quadcopter, as follows.
+
+<img class="wp-image-222 size-medium alignnone" src="http://localhost/wordpress/wp-content/uploads/2016/07/quad-attitude-280x300.png" alt="quad-attitude" width="280" height="300" />
+
+We then have
+
+\begin{equation}
+v = \dot{\overline x}
+=
+\begin{bmatrix}
+\dot x \\
+\dot y \\
+\dot z \\
+\end{bmatrix}
+\end{equation}
+
+Therefore,
+\begin{equation}
+T_{translational} = \frac{1}{2} m \left(\dot x^2 + \dot y^2 + \dot z^2\right)
+\end{equation}
+
+\begin{equation}
+T_{rotational} = \frac{1}{2}J\omega \cdot \omega
+\end{equation}
+Since
+\begin{equation}
+J
+=
+\begin{bmatrix}
+J_{xx} &amp; 0 &amp; 0 \\
+0 &amp; J_{yy} &amp; 0 \\
+0 &amp; 0 &amp; J_{zz}
+\end{bmatrix}
+\end{equation}
+due to the symmetry of the quadcopter, and
+\begin{equation}
+\omega
+=
+\begin{bmatrix}
+\omega_x \\ \omega_y \\ \omega_z
+\end{bmatrix}
+\end{equation}
+
+we have
+
+\begin{equation}
+T_{rotational}
+=
+\frac{1}{2}\left(J_{xx}\omega^2_x + J_{yy}\omega^2_y + J_{zz}\omega^2_z\right)
+\end{equation}
+
+Thus, the total kinetic energy can be expressed as
+\begin{equation}
+T
+=
+\frac{1}{2} m \left(\dot x^2 + \dot y^2 + \dot z^2\right)
++
+\frac{1}{2} \left(J_{xx}\omega^2_x + J_{yy}\omega^2_y + J_{zz}\omega^2_z\right)
+\end{equation}
+Since potential energy, $U$, is trivially $mgz$, the expression for $L$ becomes
+
+\begin{equation}
+L
+=
+\frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2)
++
+\frac{1}{2} (J_{xx}\omega^2_x + J_{yy}\omega^2_y + J_{zz}\omega^2_z)
+-
+mgz \tag{4}
+\end{equation}
+
+Plugging in equation $(2)$ into equation $(4)$, we have the final expression for $L$:
+
+\begin{multline}
+L
+=
+\frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2)
++
+\frac{1}{2}J_{xx}s_\psi^2 s_\theta^2 \dot\phi^2 + J_{xx}s_\psi s_\theta c_\psi \dot \phi \dot \theta + \frac{1}{2}J_{xx}c_\psi^2 \dot \theta^2\\
++
+\frac{1}{2}J_{yy}c_\psi^2s_\theta^2 \dot\phi^2 - J_{yy} c_\psi s_\theta s_\psi \dot \phi \dot \theta + \frac{1}{2} J_{yy}s_\psi^2 \dot \theta^2
++
+\frac{1}{2}J_{zz}c_\theta^2 \dot \phi^2 + J_{zz} c_\theta \dot \phi \dot \psi + \frac{1}{2}J_{zz} \dot \psi^2
+-
+mgz \tag{5}
+\end{multline}
+
+<h2>Derivation of Each Lagrangian EOM</h2>
+Each Lagrangian equation of motion is derived from equation $(3)$:
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot q_i}\right) - \frac{\partial L}{\partial q_i} = \Phi_{q_i}
+\end{equation}
+, where $q_i$ is the state variable being considered. $\Phi_{q_i}$ is defined as the total external force associated with $q_i$. In the case of a quadcopter, external forces are modelled as forces on the 4 propeller locations, where the propellers are located in the following locations.
+
+\begin{align}
+\begin{split}
+x_1 = \overline{x} + l e_1 \\
+x_2 = \overline{x} + l e_2 \\
+x_3 = \overline{x} - l e_1 \\
+x_4 = \overline{x} - l e_2
+\end{split} \tag{6}
+\end{align}
+
+Thus, $\Phi_{q_i}$ in our case is:
+
+\begin{equation}
+\Phi_{q_i} = \sum\limits_{k=1}^4 F_k \cdot \frac{\partial x_k}{\partial q_i}
+\end{equation}
+
+Each propeller emits a thrust (in the body-frame) that is proportional to the square of the propeller angular velocity, as well as a drag force that affects the yaw of the quadcopter (in the body frame) that is also proportional to the square of the propeller angular velocity. Since adjacent propellers rotate in opposite directions, $\Phi_{q_i}$ can be expressed as:
+\begin{multline}
+\Phi_{q_i}
+=
+(k_1 \omega_1^2 e_3 + b_1 \omega_1^2 e_2) \cdot \frac{\partial x_1}{\partial q_i}
++ (k_2 \omega_2^2 e_3 + b_2 \omega_2^2 e_1) \cdot \frac{\partial x_2}{\partial q_i} \\
++ (k_3 \omega_3^2 e_3 - b_3 \omega_3^2 e_2) \cdot \frac{\partial x_3}{\partial q_i}
++ (k_4 \omega_4^2 e_3 - b_4 \omega_4^2 e_1) \cdot \frac{\partial x_4}{\partial q_i} \tag{7}
+\end{multline}
+
+We now derive the Lagrangian EOM with respect to the state variables, $q_i = x, y, z, \phi, \theta, \psi$.
+
+<h3>$q_1 = x$</h3>
+<section>
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot x} = m \dot x\right)
+-
+\left(\frac{\partial L}{\partial x} = 0\right)
+=
+m \ddot x
+=
+\Phi_x \tag{8}
+\end{equation}
+
+Using $q_1 = x$ in equation $(7)$, we know that:
+\begin{multline}
+\Phi_x
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2)e_3 \cdot E_x \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) e_2 \cdot E_x
++ (b_2 \omega_2^2 - b_4 \omega_4^2) e_1 \cdot E_x
+\end{multline}
+
+Also, from the definition of the transformation matrix presented in equation $(1)$, we know that
+
+\begin{align}
+\begin{split}
+e_3 = s_\theta s_\phi E_x - s_\theta c_\phi E_y + c_\theta E_z \\
+e_2 = (-s_\psi c_\phi - c_\psi c_\theta s_\phi) E_x
++ (-s_\psi s_\phi + c_\psi c_\theta c_\phi) E_y
++ c_\psi s_\theta E_z \\
+e_1 = (c_\psi c_\phi - s_\psi c_\theta s_\phi) E_x
++ (c_\psi s_\phi + s_\psi c_\theta c_\phi) E_y
++ s_\psi s_\theta E_z
+\end{split} \tag{9}
+\end{align}
+
+Therefore, we can see that
+\begin{multline}
+\Phi_x
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) s_\theta s_\phi \\
++ (b_3 \omega_3^2 - b_1 \omega_1^2) (s_\psi c_\phi + c_\psi c_\theta s_\phi)
++ (b_2 \omega_2^2 - b_4 \omega_4^2) (c_\psi c_\phi - s_\psi c_\theta s_\phi) \tag{10}
+\end{multline}
+
+Combining equation $(8)$ and equation $(10)$, the Lagrangian EOM for $q_1 = x$ becomes
+
+\begin{multline}
+m \ddot x
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) s_\theta s_\phi \\
++ (b_3 \omega_3^2 - b_1 \omega_1^2) (s_\psi c_\phi + c_\psi c_\theta s_\phi)
++ (b_2 \omega_2^2 - b_4 \omega_4^2) (c_\psi c_\phi - s_\psi c_\theta s_\phi) \tag{11}
+\end{multline}
+</section>
+
+<h3>$q_2 = y$</h3>
+<section>
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot y} = m \dot y\right)
+-
+\left(\frac{\partial L}{\partial y} = 0\right)
+=
+m \ddot y
+=
+\Phi_y \tag{12}
+\end{equation}
+
+Using $q_2 = y$ in equation $(7)$, we know that:
+\begin{multline}
+\Phi_y
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2)e_3 \cdot E_y \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) e_2 \cdot E_y
++ (b_2 \omega_2^2 - b_4 \omega_4^2) e_1 \cdot E_y \tag{13}
+\end{multline}
+
+Combining equation $(9)$ and equation $(13)$, we see that
+\begin{multline}
+\Phi_y
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) (-s_\theta c_\phi) \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) (-s_\psi s_\phi + c_\psi c_\theta c_\phi)
++ (b_2 \omega_2^2 - b_4 \omega_4^2) (c_\psi s_\phi + s_\psi c_\theta c_\phi) \tag{14}
+\end{multline}
+
+From equation $(12)$ and equation $(14)$, we have the final Lagrangian expression for $q_2 = y$:
+\begin{multline}
+m \ddot y
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) (-s_\theta c_\phi) \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) (-s_\psi s_\phi + c_\psi c_\theta c_\phi)
++ (b_2 \omega_2^2 - b_4 \omega_4^2) (c_\psi s_\phi + s_\psi c_\theta c_\phi) \tag{15}
+\end{multline}
+</section>
+
+<h3>$q_3 = z$</h3>
+<section>
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot z} = m \dot z\right)
+-
+\left(\frac{\partial L}{\partial z} = -mg\right)
+=
+m \ddot z + mg
+=
+\Phi_z \tag{16}
+\end{equation}
+
+Using $q_3 = z$ in equatin $(7)$, we know that:
+\begin{multline}
+\Phi_z
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2)e_3 \cdot E_z \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) e_2 \cdot E_z
++ (b_2 \omega_2^2 - b_4 \omega_4^2) e_1 \cdot E_z \tag{17}
+\end{multline}
+
+Combining equation $(9)$ and equation $(17)$, we see that
+\begin{multline}
+\Phi_z
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) c_\theta \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) c_\psi s_\theta
++ (b_2 \omega_2^2 - b_4 \omega_4^2) s_\psi s_\theta \tag{18}
+\end{multline}
+
+From equation $(16)$ and equation $(18)$, we have the final Lagrangian expression for $q_3 = z$:
+\begin{multline}
+m \ddot z + mg
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) c_\theta \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) c_\psi s_\theta
++ (b_2 \omega_2^2 - b_4 \omega_4^2) s_\psi s_\theta \tag{19}
+\end{multline}
+</section>
+
+<h3>$q_4 = \phi$</h3>
+<section>
+Solving for $\frac{d}{dt}(\frac{\partial L}{\partial \dot \phi})$ and $\frac{\partial L}{\partial \phi}$, we have
+
+\begin{multline}
+\frac{\partial L}{\partial \dot \phi} = J_{xx} s_\psi^2 s_\theta^2 \dot \phi+J_{xx} s_\psi s_\theta c_\psi \dot \theta
++ J_{yy} c_\psi^2 s_\theta^2 \dot \phi - J_{yy} c_\psi s_\theta s_\psi \dot \theta
++J_{zz} c_\theta^2 \dot \phi + J_{zz} c_\theta \dot \psi
+\end{multline}
+
+\begin{multline}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot \phi}\right)
+=
+\\
+J_{xx} (s_\psi^2 s_\theta^2 \ddot \phi + 2 s_\psi^2 s_\theta c_\theta \dot \theta \dot \phi
++ 2 s_\psi c_\psi s_\theta^2 \dot \psi \dot \phi + s_\psi s_\theta c_\psi \ddot \theta
+-s_\psi^2 s_\theta \dot \psi \dot \theta + s_\psi c_\theta c_\psi \dot \theta^2 + c_\psi^2 s_\theta \dot \psi \dot \theta) \\
++ J_{yy} (c_\psi^2 s_\theta^2 \ddot \phi + 2 s_\theta c_\theta c_\psi^2 \dot \theta \dot \phi
+- 2 c_\psi s_\psi s_\theta^2 \dot \psi \dot \phi - c_\psi s_\theta s_\psi \ddot \theta
+- c_\psi^2 s_\theta \dot \psi \dot \theta - c_\psi c_\theta s_\psi \dot \theta^2 + s_\psi^2 s_\theta \dot \psi \dot \theta)
+\\
++J_{zz} (c_\theta^2 \ddot \phi - 2 c_\theta s_\theta \dot \theta \dot \phi
++ c_\theta \ddot \psi - s_\theta \dot \theta \dot \psi) \tag{20}
+\end{multline}
+
+\begin{equation}
+\frac{\partial L}{\partial \phi} = 0 \tag{21}
+\end{equation}
+
+From equation $(9)$, we see that
+
+\begin{align}
+\begin{split}
+\frac{\partial e_1}{\partial \phi}
+= (-c_\psi s_\phi - s_\psi c_\theta c_\phi) E_x
++ (c_\psi c_\phi - s_\psi c_\theta s_\phi) E_y
+\\
+\frac{\partial e_2}{\partial \phi}
+= (s_\psi s_\phi - c_\psi c_\theta c_\phi) E_x
++ (-s_\psi c_\phi - c_\psi c_\theta s_\phi) E_y
+\end{split} \tag{22}
+\end{align}
+
+From equation $(7)$ and equation $(22)$, it follows that
+
+\begin{multline}
+\Phi_\phi \\
+=
+(k_3 \omega_3^2 - k_1 \omega_1^2) l s_\theta c_\psi
++ (k_2 \omega_2^2 - k_4 \omega_4^2) l s_\theta s_\psi
++ (b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l c_\theta
+\end{multline}
+
+Thus, we arrive at the final Lagrangian expression for $q_4 = \phi$:
+\begin{multline}
+J_{xx} (s_\psi^2 s_\theta^2 \ddot \phi + 2 s_\psi^2 s_\theta c_\theta \dot \theta \dot \phi
++ 2 s_\psi c_\psi s_\theta^2 \dot \psi \dot \phi + s_\psi s_\theta c_\psi \ddot \theta
+-s_\psi^2 s_\theta \dot \psi \dot \theta + s_\psi c_\theta c_\psi \dot \theta^2 + c_\psi^2 s_\theta \dot \psi \dot \theta) \\
++ J_{yy} (c_\psi^2 s_\theta^2 \ddot \phi + 2 s_\theta c_\theta c_\psi^2 \dot \theta \dot \phi
+- 2 c_\psi s_\psi s_\theta^2 \dot \psi \dot \phi - c_\psi s_\theta s_\psi \ddot \theta
+- c_\psi^2 s_\theta \dot \psi \dot \theta - c_\psi c_\theta s_\psi \dot \theta^2 + s_\psi^2 s_\theta \dot \psi \dot \theta)
+\\
++J_{zz} (c_\theta^2 \ddot \phi - 2 c_\theta s_\theta \dot \theta \dot \phi
++ c_\theta \ddot \psi - s_\theta \dot \theta \dot \psi)
+\\
+= (k_3 \omega_3^2 - k_1 \omega_1^2) l s_\theta c_\psi
++ (k_2 \omega_2^2 - k_4 \omega_4^2) l s_\theta s_\psi
++ (b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l c_\theta \tag{23}
+\end{multline}
+</section>
+
+<h3>$q_5 = \theta$</h3>
+<section>
+Similarly,
+
+\begin{equation}
+\frac{\partial L}{\partial \dot \theta}
+= J_{xx} s_\psi s_\theta c_\psi \dot \phi + J_{xx} c_\psi^2 \dot \theta
+- J_{yy} c_\psi s_\theta s_\psi \dot \phi + J_{yy} s_\psi^2 \dot \theta
+\end{equation}
+
+\begin{multline}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot \theta}\right) \\
+= J_{xx} (s_\psi s_\theta c_\psi \ddot \phi - s_\psi^2 s_\theta \dot \psi \dot \phi
++ c_\psi c_\theta s_\psi \dot \theta \dot \phi + c_\psi^2 s_\theta \dot \psi \dot \phi
++ c_\psi^2 \ddot \theta - 2 c_\psi s_\psi \dot \psi \dot \theta) \\
+- J_{yy} (c_\psi s_\theta s_\psi \ddot \phi + c_\psi^2 s_\theta \dot \psi \dot \phi
++ c_\psi c_\theta s_\psi \dot \theta \dot \phi - s_\psi^2 s_\theta \dot \psi \dot \phi
+- s_\psi^2 \ddot \theta - 2 s_\psi c_\psi \dot \psi \dot \theta)
+\end{multline}
+
+\begin{multline}
+\frac{\partial L}{\partial \theta}
+=
+J_{xx} (s_\psi^2 s_\theta c_\theta \dot \phi^2 + s_\psi c_\psi c_\theta \dot \phi \dot \theta) \\
++
+J_{yy} (c_\psi^2 s_\theta c_\theta \dot \phi^2 - c_\psi s_\psi c_\theta \dot \phi \dot \theta)
++
+J_{zz} (-s_\theta c_\theta \dot \phi^2 - s_\theta \dot \phi \dot \psi)
+\end{multline}
+
+From equation $(9)$, we see that
+\begin{align}
+\begin{split}
+\frac{\partial e_1}{\partial \theta} = (s_\psi s_\theta s_\phi)E_x - (s_\psi s_\theta c_\phi)E_y + s_\psi c_\theta E_z
+\\
+\frac{\partial e_2}{\partial \theta} = (c_\psi s_\theta s_\phi)E_x - (c_\psi s_\theta c_\phi)E_y + c_\psi c_\theta E_z
+\end{split}
+\end{align}
+
+From the above, we obtain $\Phi_\theta$.
+\begin{equation}
+\Phi_\theta = (k_1 \omega_1^2 - k_3 \omega_3^2) l s_\psi + (k_2 \omega_2^2 - k_4 \omega_4^2) l c_\psi
+\end{equation}
+
+Thus, we arrive at the Lagrangian expression for $q_5 = \theta$:
+\begin{multline}
+J_{xx} (s_\psi s_\theta c_\psi \ddot \phi - s_\psi^2 s_\theta \dot \psi \dot \phi + c_\psi^2 s_\theta \dot \psi \dot \phi + c_\psi^2 \ddot \theta - 2 c_\psi s_\psi \dot \psi \dot \theta - s_\psi^2 s_\theta c_\theta \dot \phi^2)
+\\
+- J_{yy} (c_\psi s_\theta s_\psi \ddot \phi + c_\psi^2 s_\theta \dot \psi \dot \phi - s_\psi^2 s_\theta \dot \psi \dot \phi -s_\psi^2 \ddot \theta - 2 s_\psi c_\psi \dot \psi \dot \theta + c_\psi^2 s_\theta c_\theta \dot \phi^2)
+\\
++ J_{zz} (s_\theta c_\theta \dot \phi^2 + s_\theta \dot \phi \dot \psi)
+\\
+=
+(k_1 \omega_1^2 - k_3 \omega_3^2) l s_\psi + (k_2 \omega_2^2 - k_4 \omega_4^2) l c_\psi
+\end{multline}
+</section>
+
+<h3>$q_6 = \psi$</h3>
+<section>
+\begin{equation}
+\frac{\partial L}{\partial \dot \psi} = J_{zz} c_\theta \dot \phi + J_{zz} \dot \psi
+\end{equation}
+
+\begin{equation}
+\frac{d}{dt}\left(\frac{\partial L}{\partial \dot \psi}\right)
+= J_{zz} (c_\theta \ddot \phi - s_\theta \dot \theta \dot \phi + \ddot \psi)
+\end{equation}
+
+\begin{multline}
+\frac{\partial L}{\partial \psi} = J_{xx} (s_\theta^2 s_\psi c_\psi \dot \phi^2 - s_\theta s_\psi^2 \dot \phi \dot \theta
++ s_\theta c_\psi^2 \dot \phi \dot \theta - c_\psi s_\psi \dot \theta^2) \\
++ J_{yy} (-s_\theta^2 c_\psi s_\psi \dot \phi^2 - s_\theta c_\psi^2 \dot \phi \dot \theta
++ s_\theta s_\psi^2 \dot \phi \dot \theta + s_\psi c_\psi \dot \theta^2)
+\end{multline}
+
+From equation $(9)$, we see that
+
+\begin{align}
+\begin{split}
+\frac{\partial e_1}{\partial \psi} = (-c_\phi s_\psi - c_\theta s_\phi c_\psi)E_x + (-s_\phi s_\psi + c_\theta c_\phi c_\psi) E_y + s_\theta c_\psi E_z
+\\
+\frac{\partial e_2}{\partial \psi} = (-c_\psi c_\phi + s_\phi c_\theta s_\psi)E_x + (-s_\phi c_\psi - c_\phi c_\theta s_\psi) E_y - s_\theta s_\psi E_z
+\end{split}
+\end{align}
+
+Using equation $(7)$, we get
+
+\begin{equation}
+\Phi_\psi = (b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l
+\end{equation}
+
+From the above, we arrive a the Lagrangian expression for $q_6 = \psi$.
+
+\begin{multline}
+-J_{xx} (s_\theta^2 s_\psi c_\psi \dot \phi^2 - s_\theta s_\psi^2 \dot \phi \dot \theta + s_\theta c_\psi^2 \dot \phi \dot \theta - c_\psi s_\psi \dot \theta^2)
+\\
+- J_{yy} (-s_\theta^2 c_\psi s_\psi \dot \phi^2 - s_\theta c_\psi^2 \dot \phi \dot \theta + s_\theta s_\psi^2 \dot \phi \dot \theta + s_\psi c_\psi \dot \theta^2)
+\\
++J_{zz} (c_\theta \ddot \phi - s_\theta \dot \theta \dot \phi + \ddot \psi)
+\\
+=
+(b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l
+\end{multline}
+</section>
+
+
+<h1>Conclusion</h1>
+A summary of the Lagrangian Equations of Motion are as follows:
+
+\begin{multline}
+m \ddot x
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) s_\theta s_\phi \\
++ (b_3 \omega_3^2 - b_1 \omega_1^2) (s_\psi c_\phi + c_\psi c_\theta s_\phi)
++ (b_2 \omega_2^2 - b_4 \omega_4^2) (c_\psi c_\phi - s_\psi c_\theta s_\phi)
+\end{multline}
+\begin{multline}
+m \ddot y
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) (-s_\theta c_\phi) \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) (-s_\psi s_\phi + c_\psi c_\theta c_\phi)
++ (b_2 \omega_2^2 - b_4 \omega_4^2) (c_\psi s_\phi + s_\psi c_\theta c_\phi)
+\end{multline}
+\begin{multline}
+m \ddot z + mg
+= (k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) c_\theta \\
++ (b_1 \omega_1^2 - b_3 \omega_3^2) c_\psi s_\theta
++ (b_2 \omega_2^2 - b_4 \omega_4^2) s_\psi s_\theta
+\end{multline}
+\begin{multline}
+J_{xx} (s_\psi^2 s_\theta^2 \ddot \phi + 2 s_\psi^2 s_\theta c_\theta \dot \theta \dot \phi
++ 2 s_\psi c_\psi s_\theta^2 \dot \psi \dot \phi + s_\psi s_\theta c_\psi \ddot \theta
+-s_\psi^2 s_\theta \dot \psi \dot \theta + s_\psi c_\theta c_\psi \dot \theta^2 + c_\psi^2 s_\theta \dot \psi \dot \theta) \\
++ J_{yy} (c_\psi^2 s_\theta^2 \ddot \phi + 2 s_\theta c_\theta c_\psi^2 \dot \theta \dot \phi
+- 2 c_\psi s_\psi s_\theta^2 \dot \psi \dot \phi - c_\psi s_\theta s_\psi \ddot \theta
+- c_\psi^2 s_\theta \dot \psi \dot \theta - c_\psi c_\theta s_\psi \dot \theta^2 + s_\psi^2 s_\theta \dot \psi \dot \theta)
+\\
++J_{zz} (c_\theta^2 \ddot \phi - 2 c_\theta s_\theta \dot \theta \dot \phi
++ c_\theta \ddot \psi - s_\theta \dot \theta \dot \psi)
+\\
+= (k_3 \omega_3^2 - k_1 \omega_1^2) l s_\theta c_\psi
++ (k_2 \omega_2^2 - k_4 \omega_4^2) l s_\theta s_\psi
++ (b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l c_\theta
+\end{multline}
+\begin{multline}
+J_{xx} (s_\psi s_\theta c_\psi \ddot \phi - s_\psi^2 s_\theta \dot \psi \dot \phi + c_\psi^2 s_\theta \dot \psi \dot \phi + c_\psi^2 \ddot \theta - 2 c_\psi s_\psi \dot \psi \dot \theta - s_\psi^2 s_\theta c_\theta \dot \phi^2)
+\\
+- J_{yy} (c_\psi s_\theta s_\psi \ddot \phi + c_\psi^2 s_\theta \dot \psi \dot \phi - s_\psi^2 s_\theta \dot \psi \dot \phi -s_\psi^2 \ddot \theta - 2 s_\psi c_\psi \dot \psi \dot \theta + c_\psi^2 s_\theta c_\theta \dot \phi^2)
+\\
++ J_{zz} (s_\theta c_\theta \dot \phi^2 + s_\theta \dot \phi \dot \psi)
+\\
+=
+(k_1 \omega_1^2 - k_3 \omega_3^2) l s_\psi + (k_2 \omega_2^2 - k_4 \omega_4^2) l c_\psi
+\end{multline}
+\begin{multline}
+-J_{xx} (s_\theta^2 s_\psi c_\psi \dot \phi^2 - s_\theta s_\psi^2 \dot \phi \dot \theta + s_\theta c_\psi^2 \dot \phi \dot \theta - c_\psi s_\psi \dot \theta^2)
+\\
+- J_{yy} (-s_\theta^2 c_\psi s_\psi \dot \phi^2 - s_\theta c_\psi^2 \dot \phi \dot \theta + s_\theta s_\psi^2 \dot \phi \dot \theta + s_\psi c_\psi \dot \theta^2)
+\\
++J_{zz} (c_\theta \ddot \phi - s_\theta \dot \theta \dot \phi + \ddot \psi)
+\\
+=
+(b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l
+\end{multline}
+
+From the above final Lagrangian Equations of Motion, the expressions for $\ddot x, \ddot y, \ddot z, \ddot \phi, \ddot \theta, \ddot \psi$ can be found.
+
+\begin{equation}
+\ddot x = \frac{(k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) s_\theta s_\phi}{m}
+\end{equation}
+
+\begin{equation}
+\ddot y = -\frac{(k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) s_\theta c_\phi}{m}
+\end{equation}
+
+\begin{equation}
+\ddot z = \frac{(k_1 \omega_1^2 + k_2 \omega_2^2 + k_3 \omega_3^2 + k_4 \omega_4^2) c_\theta}{m} - g
+\end{equation}
+
+\begin{equation}
+\ddot \phi = \frac{\Delta_1 - \frac{\Delta_2 (J_{xx}-J_{yy})(s_\psi s_\theta c_\psi)}{J_{xx} c_\psi^2 + J_{yy} s_\psi^2}-c_\theta \Delta_3}
+{J_{xx} s_\psi^2 s_\theta^2 + J_{yy} c_\psi^2 s_\theta^2 - \frac{(J_{xx} s_\psi s_\theta c_\psi - J_{yy} s_\psi s_\theta c_\psi)^2}{
+J_{xx} c_\psi^2 + J_{yy} s_\psi^2}}
+\end{equation}
+
+\begin{equation}
+\ddot \theta = \frac{\Delta_2 - (J_{xx} s_\psi s_\theta c_\psi - J_{yy} c_\psi s_\theta s_\psi) \ddot \phi}{J_{xx} c_\psi^2 + J_{yy} s_\psi^2}
+\end{equation}
+
+\begin{equation}
+\ddot \psi = \frac{\Delta_3 - J_{zz} c_\theta \ddot \phi}{J_{zz}}
+\end{equation}
+
+, where
+
+\begin{multline}
+\Delta_1 = (k_3 \omega_3^2 - k_1 \omega_1^2) l s_\theta c_\psi + (k_2 \omega_2^2 - k_4 \omega_4^2) l s_\theta s_\psi \\
++ (b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l c_\theta \\
+- 2 J_{xx} s_\psi^2 s_\theta c_\theta \dot \theta \dot \phi -2 J_{xx} s_\psi c_\psi s_\theta^2 \dot \psi \dot \phi
++ J_{xx} s_\psi^2 s_\theta \dot \psi \dot \theta - J_{xx} s_\psi c_\theta c_\psi \dot \theta^2 - J_{xx} c_\psi^2 s_\theta \dot \psi \dot \theta \\
+- 2 J_{yy} s_\theta c_\theta c_\psi^2 \dot \theta \dot \phi + 2 J_{yy} c_\psi s_\psi s_\theta^2 \dot \psi \dot \phi
++ J_{yy} c_\psi^2 s_\theta \dot \psi \dot \theta + J_{yy} c_\psi c_\theta s_\psi \dot \theta^2 - J_{yy} s_\psi^2 s_\theta \dot \psi \dot \theta \\
++ 2 J_{zz} c_\theta s_\theta \dot \theta \dot \phi + J_{zz} s_\theta \dot \theta \dot \psi
+\end{multline}
+
+\begin{multline}
+\Delta_2 = (k_1 \omega_1^2 - k_3 \omega_3^2) l s_\psi + (k_2 \omega_2^2 - k_4 \omega_4^2) l c_\psi \\
++ J_{xx} s_\psi^2 s_\theta \dot \psi \dot \phi - J_{xx} c_\psi^2 s_\theta \dot \psi \dot \phi
++ 2 J_{xx} c_\psi s_\psi \dot \psi \dot \theta + J_{xx} s_\psi^2 s_\theta c_\theta \dot \phi^2 \\
++ J_{yy} c_\psi^2 s_\theta \dot \psi \dot \phi - J_{yy} s_\psi^2 s_\theta \dot \psi \dot \phi
+- 2 J_{yy} s_\psi c_\psi \dot \psi \dot \theta + J_{yy} c_\psi^2 s_\theta c_\theta \dot \phi^2 \\
+- J_{zz} s_\theta c_\theta \dot \phi^2 - J_{zz} s_\theta \dot \phi \dot \psi
+\end{multline}
+
+\begin{multline}
+\Delta_3 = (b_1 \omega_1^2 - b_2 \omega_2^2 + b_3 \omega_3^2 - b_4 \omega_4^2) l \\
++ J_{xx} s_\theta^2 s_\psi c_\psi \dot \phi^2 - J_{xx} s_\theta s_\psi^2 \dot \phi \dot \theta
++ J_{xx} s_\theta c_\psi^2 \dot \phi \dot \theta - J_{xx} c_\psi s_\psi \dot \theta^2 \\
+- J_{yy} s_\theta^2 c_\psi s_\psi \dot \phi^2 - J_{yy} s_\theta c_\psi^2 \dot \phi \dot \theta
++ J_{yy} s_\theta s_\psi^2 \dot \phi \dot \theta + J_{yy} s_\psi c_\psi \dot \theta^2 \\
++ J_{zz} s_\theta \dot \theta \dot \phi
+\end{multline}
+
+<h1>MatLab Simulation</h1>
+I've coded up a MatLab simulation using the above equations of motion. The code is available <a href="https://github.com/kenk42292/quad_sim_euler_lagrangian">here</a>. Below, I've recorded simulation visuals for convenience.
+
+[embed]https://www.youtube.com/watch?v=9Fzn_MahYvY[/embed]
