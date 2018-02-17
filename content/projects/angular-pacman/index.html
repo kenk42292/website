@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Angular Pacman</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="/content/projects/angular-pacman/style.css">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular-animate.js"></script>
+        <script src="/js/closure-library/closure/goog/base.js"></script>
+        <script src="/content/projects/angular-pacman/pacman.js"></script>
+        <script src="/content/projects/angular-pacman/utils.js"></script>
+        <script src="/content/projects/angular-pacman/directives/maze.js"></script>
+        <script src="/content/projects/angular-pacman/controllers/game-controller.js"></script>
+        <script src="/content/projects/angular-pacman/directives/cell.js"></script>
+        <script src="/content/projects/angular-pacman/directives/pacman-agent.js"></script>
+        <script src="/content/projects/angular-pacman/directives/ghost-agent.js"></script>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="header-wrapper">
+        </div>
+
+        <!-- Project Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <h1>Angular Pacman</h1>
+                    <p>
+                        The main subject of this project was angularJS. It seemed like one of the basics for a web-dev person (not that I am one), so I decided to jump into the subject. After going through an excellent tutorial on Udemy - taught by the awesome <a href="http://www.loonycorn.com/#/">Loony Corn</a> - I felt ready to tackle my own project. And, as the topic of this post may suggest, I decided to create a primitive Pacman game.  So without further ado, here it is~
+                    </p>
+                    <div ng-app="pacman" ng-controller="gameController">
+                        <div class="stateDisplay">
+                            Score: {{gameState.score}}
+                            Lives: {{gameState.numLives}}
+                        </div>
+                        <maze> 
+                            <cell grid-index="{{loc}}" ng-repeat="(loc, val) in GRID"></cell>
+                            <pacman-agent></pacman-agent>
+                            <ghost-agent name="blinky"></ghost-agent>
+                            <ghost-agent name="pinky"></ghost-agent>
+                            <ghost-agent name="inky"></ghost-agent>
+                            <ghost-agent name="clyde"></ghost-agent>
+                        </maze>
+                    </div>
+                    A few implementation notes:
+                    <ul>
+                        <li>You get 10 lives, but ya, the ghosts are on steroids; particularly Blinky (the red one). All of them use varying degrees of A* search to find the optimal moves they should make to catch Pacman at every tiny time-inteval. By <em>varying degrees,</em> I mean they're programmed to make stupid choices at different time-intervals as well.</li>
+                        <li>The maze was created with your typical DFS. Then, to make the game playable, I randomly took away some dead ends. Though, I guess that still leaves you with a heck of a difficult maze.</li>
+                        <li>Heaps and Sets from Google's Closure Library were used to implement the above algorithms. First time using the library, uber-impressed by it.</li>
+                        <li>AngularJS was really what let me treat the agents (Pacman, Blinky, Inky, Pinky, Clyde) and even the walls and pellets, as <em>objects</em>. Source code available <a href="https://github.com/kenk42292/angular-pacman">here</a>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/jquery.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+        <!-- Custom JavaScript -->
+        <script src="/js/custom.js"></script>
+    </body>
+</html>
+
+
+
+
+
+
