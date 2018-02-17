@@ -1,370 +1,431 @@
-<h1>Introduction</h1>
-
-In this project, I derive the mathematical model for the X-configuration quadcopter via Lagrangian Equations of motion and quaternions. This is somewhat similar to what I've done in <a href="http://localhost/wordpress/dynamics-of-quadcopter-via-euler-rotations-and-lagrangian-eoms/">this post</a>. I then implement a feedback controller to stabilize the quadcopter attitude with respect to user-inputs.
-
-<h1>Derivation of the Lagrangian EOMs</h1>
-
-<h3>Kinetic and Potential Energy Difference</h3>
-
-The Lagrangian energy expression, $L$, is unchanged from the Euler Angle Derivation of quadcopter dynamics in <a href="http://localhost/wordpress/dynamics-of-quadcopter-via-euler-rotations-and-lagrangian-eoms/">this post</a>.
-
-\begin{equation}
-L = \frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2) + \frac{1}{2} (J_{xx} w_x^2 + J_{yy} w_y^2 + J_{zz} w_z^2) - mgz
-\end{equation}
-
-Given that $\omega|_e = 2 q(t)^{-1} \dot q(t) $, we know that, for an arbitrary quaternion, $q=\begin{bmatrix} q_w \\ q_x \\ q_y \\ q_z \end{bmatrix}$,
-
-\begin{align}
-\begin{split}
-\omega_x = 2 (q_w \dot q_x + q_z \dot q_y - q_y \dot q_z - q_x \dot q_w) \\
-\omega_y = 2 (q_x \dot q_z + q_w \dot q_y - q_z \dot q_x - q_y \dot q_w) \\
-\omega_z = 2 (q_w \dot q_z + q_y \dot q_x - q_x \dot q_y - q_z \dot q_w)
-\end{split}
-\end{align}
-
-Therefore, the expression for $L$ becomes
-
-
-\begin{multline}
-L = \frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2) \\
-        + 2 J_{xx} (\dot q_x q_w)^2 + 2 J_{xx} (\dot q_z q_y)^2 + 2 J_{xx} (\dot q_w q_x)^2 + 2 J_{xx} (\dot q_y q_z)^2 \\
-        - 4 J_{xx} \dot q_x \dot q_z q_w q_y - 4 J_{xx} \dot q_w \dot q_x q_w q_x + 4 J_{xx} \dot q_x \dot q_y q_w q_z \\
-        + 4 J_{xx} \dot q_w \dot q_z q_x q_y - 4 J_{xx} \dot q_y \dot q_z q_y q_z - 4 J_{xx} \dot q_w \dot q_y q_x q_z \\
-        + 2 J_{yy} (\dot q_y q_w)^2 + 2 J_{yy} (\dot q_x q_z)^2 + 2 J_{yy} (\dot q_w q_y)^2 + 2 J_{yy} (\dot q_z q_x)^2 \\
-        - 4 J_{yy} \dot q_x \dot q_y q_w q_z - 4 J_{yy} \dot q_w \dot q_y q_w q_y + 4 J_{yy} \dot q_y \dot q_z q_w q_x \\
-        + 4 J_{yy} \dot q_w \dot q_x q_y q_z - 4 J_{yy} \dot q_x \dot q_z q_x q_z - 4 J_{yy} \dot q_w \dot q_z q_x q_y \\
-        + 2 J_{zz} (\dot q_z q_w)^2 + 2 J_{zz} (\dot q_y q_x)^2 + 2 J_{zz} (\dot q_x q_y)^2 + 2 J_{zz} (\dot q_w q_z)^2 \\
-        - 4 J_{zz} \dot q_y \dot q_z q_w q_x + 4 J_{zz} \dot q_x \dot q_z q_w q_y - 4 J_{zz} \dot q_w \dot q_z q_w q_z \\
-        - 4 J_{zz} \dot q_x \dot q_y q_x q_y + 4 J_{zz} \dot q_w \dot q_y q_x q_z  - 4 J_{zz} \dot q_w \dot q_x q_y q_z 
-        -mgz
-\end{multline}
-
-
-<h3>The Lagrangians</h3>
-
-Based on this $L$, the Lagrangian motions of equations for each of $\ddot x$, $\ddot y$, $\ddot z$, $\ddot q_w$, $\ddot q_x$, $\ddot q_y$, $\ddot q_z$ become the following.
-
-
-\begin{equation}
-m \ddot x = \Phi_x
-\end{equation}
-
-\begin{equation}
-m \ddot y = \Phi_y
-\end{equation}
-
-\begin{equation}
-m \ddot z + mg = \Phi_z
-\end{equation}
-
-\begin{multline}
-4 J_{xx} \ddot q_w q_x^2 + 4 J_{yy} \ddot q_w q_y^2 + 4 J_{zz} \ddot q_w q_z^2 \\
-+ 8 J_{xx} \dot q_w \dot q_x q_x + 8 J_{yy} \dot q_w \dot q_y q_y + 8 J_{zz} \dot q_w \dot q_z q_z \\
-- 8 J_{xx} \dot q_x^2 q_w - 8 J_{yy} \dot q_y^2 q_w - 8 J_{zz} \dot q_z^2 q_w \\
-- 4 J_{xx} \ddot q_x q_w q_x - 4 J_{yy} \ddot q_y q_w q_y - 4 J_{zz} \ddot q_z q_w q_z \\
-+ (-8 J_{xx} + 8 J_{yy}) \dot q_x \dot q_y q_z + (-8 J_{zz} + 8 J_{xx}) \dot q_x \dot q_z q_y + (-8 J_{yy} + 8 J_{zz}) \dot q_y \dot q_z q_x \\
-+ (-4 J_{yy} + 4 J_{xx}) \ddot q_z q_x q_y + (-4 J_{xx} + 4 J_{zz}) \ddot q_y q_x q_z + (-4 J_{zz} + 4 J_{yy}) \ddot q_x q_y q_z \\
-=
-\Phi_{q_w}
-\end{multline}
-
-\begin{multline}
-4 J_{xx} \ddot q_x q_w^2 + 4 J_{yy} \ddot q_x q_z^2 + 4 J_{zz} \ddot q_x q_y^2 \\
-+ 8 J_{xx} \dot q_w \dot q_x q_w + 8 J_{yy} \dot q_x \dot q_z q_z + 8 J_{zz} \dot q_x \dot q_y q_y \\
-+ (-8 J_{yy} + 8 J_{zz}) \dot q_y \dot q_z q_w + (-8 J_{xx} + 8 J_{yy}) \dot q_w \dot q_z q_y + (-8 J_{zz} + 8 J_{xx}) \dot q_w \dot q_y q_z \\
-+ (-4 J_{yy} + 4 J_{xx}) \ddot q_y q_w q_z + (-4 J_{xx} + 4 J_{zz}) \ddot q_z q_w q_y + (-4 J_{zz} + 4 J_{yy}) \ddot q_w q_y q_z \\
-- 8 J_{xx} \dot q_w^2 q_x - 8 J_{yy} \dot q_z^2 q_x - 8 J_{zz} \dot q_y^2 q_x \\
-- 4 J_{xx} \ddot q_w q_w q_x - 4 J_{yy} \ddot q_z q_x q_z - 4 J_{zz} \ddot q_y q_x q_y \\
-=
-\Phi_{q_x}
-\end{multline}
-
-\begin{multline}
-4 J_{xx} \ddot q_y q_z^2 + 4 J_{yy} \ddot q_y q_w^2 + 4 J_{zz} \ddot q_y q_x^2 \\
-+ 8 J_{xx} \dot q_y \dot q_z q_z + 8 J_{yy} \dot q_w \dot q_y q_w + 8 J_{zz} \dot q_x \dot q_y q_x \\
-- 8 J_{xx} \dot q_z^2 q_y - 8 J_{yy} \dot q_w^2 q_y - 8 J_{zz} \dot q_x^2 q_y \\
-- 4 J_{xx} \ddot q_z q_y q_z - 4 J_{yy} \ddot q_w q_w q_y - 4 J_{zz} \ddot q_x q_x q_y \\
-+ (-8 J_{xx} + 8 J_{yy}) \dot q_w \dot q_z q_x + (-8 J_{yy} + 8 J_{zz}) \dot q_w \dot q_x q_z + (-8 J_{zz} + 8 J_{xx}) \dot q_x \dot q_z q_w \\
-+ (-4 J_{xx} + 4 J_{zz}) \ddot q_w q_x q_z + (-4 J_{yy} + 4 J_{xx}) \ddot q_x q_w q_z + (-4 J_{zz} + 4 J_{yy}) \ddot q_z q_w q_x \\
-=
-\Phi_{q_y}
-\end{multline}
-
-\begin{multline}
-4 J_{xx} \ddot q_z q_y^2 + 4 J_{yy} \ddot q_z q_x^2 + 4 J_{zz} \ddot q_z q_w^2 \\
-+ 8 J_{xx} \dot q_y \dot q_z q_y + 8 J_{yy} \dot q_x \dot q_z q_x + 8 J_{zz} \dot q_w \dot q_z q_w \\
-- 8 J_{xx} \dot q_y^2 q_z - 8 J_{yy} \dot q_x^2 q_z - 8 J_{zz} \dot q_w^2 q_z \\
-- 4 J_{xx} \ddot q_y q_y q_z - 4 J_{yy} \ddot q_x q_x q_z - 4 J_{zz} \ddot q_w q_w q_z \\
-+ (-4 J_{zz} + 4 J_{yy}) \ddot q_y q_w q_x + (-4 J_{xx} + 4 J_{zz}) \ddot q_x q_w q_y + (-4 J_{yy} + 4 J_{xx}) \ddot q_w q_x q_y \\
-+ (-8 J_{zz} + 8 J_{xx}) \dot q_w \dot q_y q_x + (-8 J_{xx} + 8 J_{yy}) \dot q_x \dot q_y q_w + (-8 J_{yy} + 8 J_{zz}) \dot q_w \dot q_x q_y \\
-=
-\Phi_{q_z}
-\end{multline}
-
-
-To compute the $\Phi$ values, the rotor positions and angular velocities should be considered. Because the quadrotor is in an x-configuration, the rotors positions are given by the following:
-
-\begin{align}
-\begin{split}
-x_1 = \bar x + \frac{l}{\sqrt{2}} e_1 + \frac{l}{\sqrt{2}} e_2\\
-x_2 = \bar x - \frac{l}{\sqrt{2}} e_1 + \frac{l}{\sqrt{2}} e_2\\
-x_3 = \bar x - \frac{l}{\sqrt{2}} e_1 - \frac{l}{\sqrt{2}} e_2\\
-x_4 = \bar x + \frac{l}{\sqrt{2}} e_1 - \frac{l}{\sqrt{2}} e_2\\
-\end{split}
-\end{align}
-
-Here, $\bar x = x \cdot E_x + y \cdot E_y + z \cdot E_z$.
-
-Since the $k$'th rotor's upwards thrust is proportional to the square of its angular velocity, $w_k$, and its planar force is proportional to the square of $w_k$, $\Phi_i$, defined as $\Phi_i = \sum\limits_{k=1}^4 F_k \cdot \frac{\partial x_k}{\partial q_i}$, is given by
-
-\begin{multline}
-(k_1 w_1^2 e_3 - b_1 w_1^2 e_1 + b_1 w_1^2 e_2) \cdot \frac{\partial x_k}{\partial q_i} \\
-+ (k_2 w_2^2 e_3 + b_2 w_2^2 e_1 + b_2 w_2^2 e_2) \cdot \frac{\partial x_k}{\partial q_i} \\
-+ (k_3 w_3^2 e_3 + b_3 w_3^2 e_1 - b_3 w_3^2 e_2) \cdot \frac{\partial x_k}{\partial q_i} \\
-+ (k_4 w_4^2 e_3 - b_4 w_4^2 e_1 - b_4 w_4^2 e_2) \cdot \frac{\partial x_k}{\partial q_i}
-\end{multline}
-
-*Note that $q_i$ above refers to an arbitrary state variable, not necessarily a quaternion.
-
-From this, the following expressions for $\Phi$ are computed.
-
-\begin{multline}
-\Phi_x = 2(k_1 w_1^2 + k_2 w_2^2 + k_3 w_3^2 + k_4 w_4^2)(q_y q_w + q_x q_z) \\
-            + (-b_1 w_1^2 + b_2 w_2^2 + b_3 w_3^2 - b_4 w_4^2) (1-2(q_y^2 + q_z^2)) \\
-            + 2(b_1 w_1^2 + b_2 w_2^2 - b_3 w_3^2 - b_4 w_4^2) (q_x q_y - q_z q_w)
-\end{multline}
-
-\begin{multline}
-\Phi_y = 2(k_1 w_1^2 + k_2 w_2^2 + k_3 w_3^2 + k_4 w_4^2)(q_z q_y - q_x q_w) \\
-            + 2(-b_1 w_1^2 + b_2 w_2^2 + b_3 w_3^2 - b_4 w_4^2) (q_z q_w + q_x q_y) \\
-            + (b_1 w_1^2 + b_2 w_2^2 - b_3 w_3^2 - b_4 w_4^2) (1-2(q_x^2 + q_z^2))
-\end{multline}
-
-\begin{multline}
-\Phi_z = (k_1 w_1^2 + k_2 w_2^2 + k_3 w_3^2 + k_4 w_4^2) (1-2(q_x^2 + q_y^2)) \\
-            + 2(-b_1 w_1^2 + b_2 w_2^2 + b_3 w_3^2 - b_4 w_4^2) (q_z q_x - q_y q_w) \\
-            + 2(b_1 w_1^2 + b_2 w_2^2 - b_3 w_3^2 - b_4 w_4^2) (q_x q_w + q_z q_y)
-\end{multline}
-
-\begin{multline}
-\Phi_{q_w} = \frac{l}{\sqrt{2}}
-    [
-    (T_{e \rightarrow E}
-        \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
-                        b_1 w_1^2 + b_3 w_3^2  \\
-                        k_1 w_1^2 - k_3 w_3^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} -2 q_z \\ 2 q_z \\ 2 q_x - 2 q_y\end{bmatrix} \\
-    +
-    (T_{e \rightarrow E}
-        \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
-                        b_2 w_2^2 + b_4 w_4^2  \\
-                        k_2 w_2^2 - k_4 w_4^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} -2 q_z \\ -2 q_z \\ 2 q_x + 2 q_y\end{bmatrix}
-    ]
-\end{multline}
-
-\begin{multline}
-\Phi_{q_x} = \frac{l}{\sqrt{2}}
-    [
-    (T_{e \rightarrow E}
-        \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
-                        b_1 w_1^2 + b_3 w_3^2  \\
-                        k_1 w_1^2 - k_3 w_3^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} 2 q_y \\ 2 q_y - 4 q_x \\ 2 q_w + 2 q_z\end{bmatrix} \\
-    +
-    (T_{e \rightarrow E}
-        \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
-                        b_2 w_2^2 + b_4 w_4^2  \\
-                        k_2 w_2^2 - k_4 w_4^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} 2 q_y \\ -4 q_x - 2 q_y \\ 2 q_w - 2 q_z\end{bmatrix}
-    ]
-\end{multline}
-
-\begin{multline}
-\Phi_{q_y} = \frac{l}{\sqrt{2}}
-    [
-    (T_{e \rightarrow E}
-        \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
-                        b_1 w_1^2 + b_3 w_3^2  \\
-                        k_1 w_1^2 - k_3 w_3^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} 2 q_x - 4 q_y \\ 2 q_x \\ 2 q_z - 2 q_w\end{bmatrix} \\
-    +
-    (T_{e \rightarrow E}
-        \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
-                        b_2 w_2^2 + b_4 w_4^2  \\
-                        k_2 w_2^2 - k_4 w_4^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} 2 q_x + 4 q_y\\ -2 q_x \\ 2 q_z + 2 q_w\end{bmatrix}
-    ]
-\end{multline}
-
-\begin{multline}
-\Phi_{q_z} = \frac{l}{\sqrt{2}}
-    [
-    (T_{e \rightarrow E}
-        \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
-                        b_1 w_1^2 + b_3 w_3^2  \\
-                        k_1 w_1^2 - k_3 w_3^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} -2q_w - 4 q_z \\ 2 q_w - 4 q_z \\ 2 q_x + 2 q_y\end{bmatrix} \\
-    +
-    (T_{e \rightarrow E}
-        \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
-                        b_2 w_2^2 + b_4 w_4^2  \\
-                        k_2 w_2^2 - k_4 w_4^2
-        \end{bmatrix})
-        \cdot
-        \begin{bmatrix} -2 q_w + 4 q_z \\ -4 q_z - 2 q_w \\ 2 q_y - 2 q_x\end{bmatrix}
-    ]
-\end{multline}
-
-
-The transformation matrix from body coordinates to earth-fixed coordinates, $T_{e \rightarrow E}$, is given by
-
-\begin{equation}
-T_{e \rightarrow E} = 
-\begin{bmatrix}
-    1-2(q_y^2-q_z^2)    &   2(q_x^2 q_y^2-q_z^2 q_w^2   &   2(q_y q_w + q_x q_z) \\
-    2(q_z q_w + q_x q_y &   1-2(q_x^2+q_z^2)            &   2(q_z q_y - q_x q_w) \\
-    2(q_z q_x - q_y q_w &   2(q_x q_w + q_z q_y)        &   1-2(q_x^2+q_y^2)
-\end{bmatrix}
-\end{equation}
-
-
-The Lagrangian equations for the translational variables, $x$, $y$, $z$, can be easily solved for as
-
-\begin{align}
-\begin{split}
-\ddot x = \frac{\Phi_x}{m} \\
-\ddot y = \frac{\Phi_y}{m} \\
-\ddot z = \frac{\Phi_z}{m} -g
-\end{split}
-\end{align}
-
-However, the Lagrangian equations for the rotational variables, $q_w$, $q_x$, $q_y$, and $q_z$ is best solved during simulation with the assistance of a matrix equation solver (in this case, MatLab).
-
-\begin{multline}
-\begin{bmatrix}
-4J_{xx}q_x^2+4J_{yy}q_y^2+4 J_{zz}q_z^2     &   4(J_{zz}-J_{yy})q_yq_z-4J_{xx}q_wq_x   &
-4(J_{xx}-J_{zz})q_xq_z-4J_{yy}q_wq_y        &   4(J_{yy}-J_{xx})q_xq_y-4J_{zz}q_wq_z   \\
-4(J_{zz}-J_{yy})q_yq_z-4J_{xx}q_wq_x        &   4J_{xx}q_w^2+4J_{yy}q_z^2+4J_{zz}q_y^2      &
-4(J_{yy}-J_{xx})q_wq_z-4J_{zz}q_xq_y        &   4(J_{xx}-J_{zz})q_wq_y-4J_{yy}q_xq_z   \\
-4(J_{xx}-J_{zz})q_xq_z-4J_{yy}q_wq_y        &   4(J_{yy}-J_{xx})q_wq_z-4J_{zz}q_xq_y    &
-4J_{xx}q_z^2+4J_{yy}q_w^2+4J_{zz}q_x^2      &   4(J_{zz}-J_{yy})q_wq_x-4J_{xx}q_yq_z   \\
-4(J_{yy}-J_{xx})q_xq_y-4J_{zz}q_wq_z        &   4(J_{xx}-J_{zz})q_wq_y-4J_{yy}q_xq_z   &
-4(J_{zz}-J_{yy})q_wq_x-4J_{xx}q_yq_z        &   4J_{xx}q_y^2+4J_{yy}q_x^2+4J_{zz}q_w^2
-\end{bmatrix}
-\begin{bmatrix}
-\ddot q_w \\ \ddot q_x \\ \ddot q_y \\ \ddot q_z
-\end{bmatrix} \\
-=
-\begin{bmatrix}
-\Delta_0 \\ \Delta_1 \\ \Delta_2 \\ \Delta_3
-\end{bmatrix}
-\end{multline}
-
-Here,
-\begin{align}
-\begin{split}
-\Delta_0 = \Phi_{q_w}
-            -8J_{xx}\dot q_w\dot q_x q_x - 8J_{yy} \dot q_w \dot q_y q_y - 8J_{zz} \dot q_w \dot q_z q_z
-            + 8J_{xx}\dot q_x^2 q_w + 8J_{yy} \dot q_y^2 q_w + 8J_{zz} \dot q_z^2 q_w \\
-            -(-8J_{xx}+8J_{yy})\dot q_x \dot q_y q_z - (-8J_{zz}+8J_{xx}) \dot q_x \dot q_z q_y
-            -(-8J_{yy}+8J_{zz})\dot q_y \dot q_z q_x \\
-\Delta_1 = \Phi_{q_x}
-            -8J_{xx}\dot q_w\dot q_x q_w - 8J_{yy} \dot q_x \dot q_z q_z - 8J_{zz} \dot q_x \dot q_y q_y
-            + 8J_{xx}\dot q_w^2 q_x + 8J_{yy} \dot q_z^2 q_x + 8J_{zz} \dot q_y^2 q_x \\
-            -(-8J_{yy}+8J_{zz})\dot q_y \dot q_z q_w - (-8J_{xx}+8J_{yy}) \dot q_w \dot q_z q_y
-            -(-8J_{zz}+8J_{xx})\dot q_w \dot q_y q_z \\
-\Delta_2 = \Phi_{q_y}
-            -8J_{xx}\dot q_y\dot q_z q_z - 8J_{yy} \dot q_w \dot q_y q_w - 8J_{zz} \dot q_x \dot q_y q_x
-            + 8J_{xx}\dot q_z^2 q_y + 8J_{yy} \dot q_w^2 q_y + 8J_{zz} \dot q_x^2 q_y \\
-            -(-8J_{xx}+8J_{yy})\dot q_w \dot q_z q_x - (-8J_{yy}+8J_{zz}) \dot q_w \dot q_x q_z
-            -(-8J_{zz}+8J_{xx})\dot q_x \dot q_z q_w \\
-\Delta_3 = \Phi_{q_z}
-            -8J_{xx}\dot q_y\dot q_z q_y - 8J_{yy} \dot q_x \dot q_z q_x - 8J_{zz} \dot q_w \dot q_z q_w
-            + 8J_{xx}\dot q_y^2 q_z + 8J_{yy} \dot q_x^2 q_z + 8J_{zz} \dot q_w^2 q_z \\
-            -(-8J_{zz}+8J_{xx})\dot q_w \dot q_y q_x - (-8J_{xx}+8J_{yy}) \dot q_x \dot q_y q_w
-            -(-8J_{yy}+8J_{zz})\dot q_w \dot q_x q_y \\
-\end{split}
-\end{align}
-
-*Note: To avoid singularities when solving this matrix, it is necessary to add the additional constraint obtained from the second derivative of the quaternion normalization condition. From
-
-\begin{equation}
-	q_w^2 + q_x^2 + q_y^2 + q_z^2 = 1
-\end{equation}
-
-, the additional constraint,
-
-\begin{equation}
-	q_w \ddot q_w+ q_x \ddot q_x + q_y \ddot q_y + q_z \ddot q_z = -\dot q_w^2 - \dot q_x^2 - \dot q_y^2 - \dot q_z^2
-\end{equation}
-
-is obtained.
-
-
-<h1>Feedback Control</h1>
-
-The feedback control used in this project is that proposed by Fresk and Nikolakopoulos. The controller aims to apply a torque to the quadcopter, as dictated by the following expression.
-
-\begin{equation}
-\tau = P_q \begin{bmatrix} q_x^{err} \\ q_y^{err} \\ q_z^{err} \end{bmatrix}
-        -P_w \begin{bmatrix} w_x \\ w_y \\ w_z \end{bmatrix}
-\end{equation}
-
-In simulation, the values, $P_q = 1.2$ and $P_w = 18$ performed well.
-
-To convert these values of desired torque to desired angular velocities of each rotor, $w_k$, the following relation between rotor angular velocities to resulting torques were used.
-
-\begin{equation}
-    \begin{bmatrix}\tau_x \\ \tau_y \\ \tau_z\end{bmatrix}
-    =
-    \begin{bmatrix}
-    \frac{l}{\sqrt{2}}(k_1w_1^2+k_2w_2^2-k_3w_3^2-k_4w_4^2) \\
-    \frac{l}{\sqrt{2}}(k_2w_2^2+k_3w_3^2-k_1w_1^2-k_4w_4^2) \\
-    l(b_1w_1^2-b_2w_2^2+b_3w_3^2-b_4w_4^2)
-    \end{bmatrix}
-\end{equation}
-
-Solving for each $w_k$, the following expressions were obtained.
-
-\begin{align}
-\begin{split}
-    w_2 = \sqrt{\frac{\frac{b_1}{k_1}\frac{\gamma_1+\gamma_3}{2} + \frac{b_3}{k_3}\frac{\gamma_2+\gamma_3}{2}
-        + \frac{b_4}{k_4}\frac{\gamma_1+\gamma_2}{2}-\gamma_4}{\frac{b_1}{k_1}k_2+b_2+\frac{b_3}{k_3}k_2+\frac{b_4}{k_4}k_2}} \\
-    w_1 = \sqrt{\frac{\frac{\gamma_1+\gamma_3}{2}-k_2w_2^2}{k_1}} \\
-    w_3 = \sqrt{\frac{\frac{\gamma_2+\gamma_3}{2}-k_2w_2^2}{k_3}} \\
-    w_4 = \sqrt{\frac{k_2w_2^2-\frac{\gamma_1+\gamma_2}{2}}{k_4}}
-\end{split}
-\end{align}
-
-Here, the following $\gamma_1, \gamma_2, \gamma_3, \gamma_4$ were used to simplify the above expression.
-
-\begin{align}
-\begin{split}
-    \gamma_1 = \frac{\sqrt{2}}{l} \tau_x \\
-    \gamma_2 = \frac{\sqrt{2}}{l} \tau_y \\
-    \gamma_3 = \frac{m a_u}{cos(2(acos(q_w))} \\
-    \gamma_4 = \frac{\tau_z}{l}
-\end{split}
-\end{align}
-
-, where $a_u$ is the user's desired acceleration earth-fixed upwards, $m$ is the quadcopter mass, $l$ is the length of a quadcopter leg, and $\tau$ is the desired acceleration.
-
-<h1>MatLab Simulation</h1>
-I’ve coded up a MatLab simulation using the above equations of motion. The code is available <a href="https://github.com/kenk42292/quad_sim_quat_lag_ctrl">here</a>. Below, I’ve recorded simulation visuals for convenience.
-
-[embed]https://www.youtube.com/watch?v=tQ971yqT8l8[/embed]
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Quadcopter Dynamics with Quaternions and Lagrangian EOMs</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="/content/projects/quadcopter-quaternion-lagrangian/style.css">
+
+        <!-- MathJax -->
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: {
+                    TagSide: "right"
+                },
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+                    processEscapes: true
+                },
+                jax: ["input/TeX", "output/CHTML"],
+                CommonHTML: {
+                    scale: 70,
+                    linebreaks: { automatic: true },
+                    width: "80% container"
+                }
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="header-wrapper">
+        </div>
+
+        <!-- Project Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <h1> Quadcopter Dynamics Simulation with Quaternions and Lagrangian EOMs </h1>
+
+                    <h1>Introduction</h1>
+
+                    In this project, I derive the mathematical model for the X-configuration quadcopter via Lagrangian Equations of motion and quaternions. This is somewhat similar to what I've done in <a href="/content/projects/quadcopter-euler-lagrangian/">this post</a>. I then implement a feedback controller to stabilize the quadcopter attitude with respect to user-inputs.
+
+                    <h1>Derivation of the Lagrangian EOMs</h1>
+
+                    <h3>Kinetic and Potential Energy Difference</h3>
+
+                    The Lagrangian energy expression, $L$, is unchanged from the Euler Angle Derivation of quadcopter dynamics in <a href="/content/projects/quadcopter-euler-lagrangian/">this post</a>.
+
+                    \begin{equation}
+                    L = \frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2) + \frac{1}{2} (J_{xx} w_x^2 + J_{yy} w_y^2 + J_{zz} w_z^2) - mgz
+                    \end{equation}
+
+                    Given that $\omega|_e = 2 q(t)^{-1} \dot q(t) $, we know that, for an arbitrary quaternion, $q=\begin{bmatrix} q_w \\ q_x \\ q_y \\ q_z \end{bmatrix}$,
+
+                    \begin{align}
+                    \begin{split}
+                    \omega_x = 2 (q_w \dot q_x + q_z \dot q_y - q_y \dot q_z - q_x \dot q_w) \\
+                    \omega_y = 2 (q_x \dot q_z + q_w \dot q_y - q_z \dot q_x - q_y \dot q_w) \\
+                    \omega_z = 2 (q_w \dot q_z + q_y \dot q_x - q_x \dot q_y - q_z \dot q_w)
+                    \end{split}
+                    \end{align}
+
+                    Therefore, the expression for $L$ becomes
+
+
+                    \begin{multline}
+                    L = \frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2) \\
+                    + 2 J_{xx} (\dot q_x q_w)^2 + 2 J_{xx} (\dot q_z q_y)^2 + 2 J_{xx} (\dot q_w q_x)^2 + 2 J_{xx} (\dot q_y q_z)^2
+                    - 4 J_{xx} \dot q_x \dot q_z q_w q_y - 4 J_{xx} \dot q_w \dot q_x q_w q_x + 4 J_{xx} \dot q_x \dot q_y q_w q_z
+                    + 4 J_{xx} \dot q_w \dot q_z q_x q_y - 4 J_{xx} \dot q_y \dot q_z q_y q_z - 4 J_{xx} \dot q_w \dot q_y q_x q_z
+                    + 2 J_{yy} (\dot q_y q_w)^2 + 2 J_{yy} (\dot q_x q_z)^2 + 2 J_{yy} (\dot q_w q_y)^2 + 2 J_{yy} (\dot q_z q_x)^2
+                    - 4 J_{yy} \dot q_x \dot q_y q_w q_z - 4 J_{yy} \dot q_w \dot q_y q_w q_y + 4 J_{yy} \dot q_y \dot q_z q_w q_x
+                    + 4 J_{yy} \dot q_w \dot q_x q_y q_z - 4 J_{yy} \dot q_x \dot q_z q_x q_z - 4 J_{yy} \dot q_w \dot q_z q_x q_y
+                    + 2 J_{zz} (\dot q_z q_w)^2 + 2 J_{zz} (\dot q_y q_x)^2 + 2 J_{zz} (\dot q_x q_y)^2 + 2 J_{zz} (\dot q_w q_z)^2
+                    - 4 J_{zz} \dot q_y \dot q_z q_w q_x + 4 J_{zz} \dot q_x \dot q_z q_w q_y - 4 J_{zz} \dot q_w \dot q_z q_w q_z
+                    - 4 J_{zz} \dot q_x \dot q_y q_x q_y + 4 J_{zz} \dot q_w \dot q_y q_x q_z  - 4 J_{zz} \dot q_w \dot q_x q_y q_z 
+                    -mgz
+                    \end{multline}
+
+
+                    <h3>The Lagrangians</h3>
+
+                    Based on this $L$, the Lagrangian motions of equations for each of $\ddot x$, $\ddot y$, $\ddot z$, $\ddot q_w$, $\ddot q_x$, $\ddot q_y$, $\ddot q_z$ become the following.
+
+
+                    \begin{equation}
+                    m \ddot x = \Phi_x
+                    \end{equation}
+
+                    \begin{equation}
+                    m \ddot y = \Phi_y
+                    \end{equation}
+
+                    \begin{equation}
+                    m \ddot z + mg = \Phi_z
+                    \end{equation}
+
+                    \begin{multline}
+                    4 J_{xx} \ddot q_w q_x^2 + 4 J_{yy} \ddot q_w q_y^2 + 4 J_{zz} \ddot q_w q_z^2
+                    + 8 J_{xx} \dot q_w \dot q_x q_x + 8 J_{yy} \dot q_w \dot q_y q_y + 8 J_{zz} \dot q_w \dot q_z q_z
+                    - 8 J_{xx} \dot q_x^2 q_w - 8 J_{yy} \dot q_y^2 q_w - 8 J_{zz} \dot q_z^2 q_w
+                    - 4 J_{xx} \ddot q_x q_w q_x - 4 J_{yy} \ddot q_y q_w q_y - 4 J_{zz} \ddot q_z q_w q_z
+                    + (-8 J_{xx} + 8 J_{yy}) \dot q_x \dot q_y q_z + (-8 J_{zz} + 8 J_{xx}) \dot q_x \dot q_z q_y + (-8 J_{yy} + 8 J_{zz}) \dot q_y \dot q_z q_x
+                    + (-4 J_{yy} + 4 J_{xx}) \ddot q_z q_x q_y + (-4 J_{xx} + 4 J_{zz}) \ddot q_y q_x q_z + (-4 J_{zz} + 4 J_{yy}) \ddot q_x q_y q_z
+                    =
+                    \Phi_{q_w}
+                    \end{multline}
+
+                    \begin{multline}
+                    4 J_{xx} \ddot q_x q_w^2 + 4 J_{yy} \ddot q_x q_z^2 + 4 J_{zz} \ddot q_x q_y^2
+                    + 8 J_{xx} \dot q_w \dot q_x q_w + 8 J_{yy} \dot q_x \dot q_z q_z + 8 J_{zz} \dot q_x \dot q_y q_y
+                    + (-8 J_{yy} + 8 J_{zz}) \dot q_y \dot q_z q_w + (-8 J_{xx} + 8 J_{yy}) \dot q_w \dot q_z q_y + (-8 J_{zz} + 8 J_{xx}) \dot q_w \dot q_y q_z
+                    + (-4 J_{yy} + 4 J_{xx}) \ddot q_y q_w q_z + (-4 J_{xx} + 4 J_{zz}) \ddot q_z q_w q_y + (-4 J_{zz} + 4 J_{yy}) \ddot q_w q_y q_z
+                    - 8 J_{xx} \dot q_w^2 q_x - 8 J_{yy} \dot q_z^2 q_x - 8 J_{zz} \dot q_y^2 q_x
+                    - 4 J_{xx} \ddot q_w q_w q_x - 4 J_{yy} \ddot q_z q_x q_z - 4 J_{zz} \ddot q_y q_x q_y
+                    =
+                    \Phi_{q_x}
+                    \end{multline}
+
+                    \begin{multline}
+                    4 J_{xx} \ddot q_y q_z^2 + 4 J_{yy} \ddot q_y q_w^2 + 4 J_{zz} \ddot q_y q_x^2
+                    + 8 J_{xx} \dot q_y \dot q_z q_z + 8 J_{yy} \dot q_w \dot q_y q_w + 8 J_{zz} \dot q_x \dot q_y q_x
+                    - 8 J_{xx} \dot q_z^2 q_y - 8 J_{yy} \dot q_w^2 q_y - 8 J_{zz} \dot q_x^2 q_y
+                    - 4 J_{xx} \ddot q_z q_y q_z - 4 J_{yy} \ddot q_w q_w q_y - 4 J_{zz} \ddot q_x q_x q_y
+                    + (-8 J_{xx} + 8 J_{yy}) \dot q_w \dot q_z q_x + (-8 J_{yy} + 8 J_{zz}) \dot q_w \dot q_x q_z + (-8 J_{zz} + 8 J_{xx}) \dot q_x \dot q_z q_w
+                    + (-4 J_{xx} + 4 J_{zz}) \ddot q_w q_x q_z + (-4 J_{yy} + 4 J_{xx}) \ddot q_x q_w q_z + (-4 J_{zz} + 4 J_{yy}) \ddot q_z q_w q_x
+                    =
+                    \Phi_{q_y}
+                    \end{multline}
+
+                    \begin{multline}
+                    4 J_{xx} \ddot q_z q_y^2 + 4 J_{yy} \ddot q_z q_x^2 + 4 J_{zz} \ddot q_z q_w^2
+                    + 8 J_{xx} \dot q_y \dot q_z q_y + 8 J_{yy} \dot q_x \dot q_z q_x + 8 J_{zz} \dot q_w \dot q_z q_w
+                    - 8 J_{xx} \dot q_y^2 q_z - 8 J_{yy} \dot q_x^2 q_z - 8 J_{zz} \dot q_w^2 q_z
+                    - 4 J_{xx} \ddot q_y q_y q_z - 4 J_{yy} \ddot q_x q_x q_z - 4 J_{zz} \ddot q_w q_w q_z
+                    + (-4 J_{zz} + 4 J_{yy}) \ddot q_y q_w q_x + (-4 J_{xx} + 4 J_{zz}) \ddot q_x q_w q_y + (-4 J_{yy} + 4 J_{xx}) \ddot q_w q_x q_y
+                    + (-8 J_{zz} + 8 J_{xx}) \dot q_w \dot q_y q_x + (-8 J_{xx} + 8 J_{yy}) \dot q_x \dot q_y q_w + (-8 J_{yy} + 8 J_{zz}) \dot q_w \dot q_x q_y
+                    =
+                    \Phi_{q_z}
+                    \end{multline}
+
+
+                    To compute the $\Phi$ values, the rotor positions and angular velocities should be considered. Because the quadrotor is in an x-configuration, the rotors positions are given by the following:
+
+                    \begin{align}
+                    \begin{split}
+                    x_1 = \bar x + \frac{l}{\sqrt{2}} e_1 + \frac{l}{\sqrt{2}} e_2\\
+                    x_2 = \bar x - \frac{l}{\sqrt{2}} e_1 + \frac{l}{\sqrt{2}} e_2\\
+                    x_3 = \bar x - \frac{l}{\sqrt{2}} e_1 - \frac{l}{\sqrt{2}} e_2\\
+                    x_4 = \bar x + \frac{l}{\sqrt{2}} e_1 - \frac{l}{\sqrt{2}} e_2\\
+                    \end{split}
+                    \end{align}
+
+                    Here, $\bar x = x \cdot E_x + y \cdot E_y + z \cdot E_z$.
+
+                    Since the $k$'th rotor's upwards thrust is proportional to the square of its angular velocity, $w_k$, and its planar force is proportional to the square of $w_k$, $\Phi_i$, defined as $\Phi_i = \sum\limits_{k=1}^4 F_k \cdot \frac{\partial x_k}{\partial q_i}$, is given by
+
+                    \begin{multline}
+                    (k_1 w_1^2 e_3 - b_1 w_1^2 e_1 + b_1 w_1^2 e_2) \cdot \frac{\partial x_k}{\partial q_i}
+                    + (k_2 w_2^2 e_3 + b_2 w_2^2 e_1 + b_2 w_2^2 e_2) \cdot \frac{\partial x_k}{\partial q_i}
+                    + (k_3 w_3^2 e_3 + b_3 w_3^2 e_1 - b_3 w_3^2 e_2) \cdot \frac{\partial x_k}{\partial q_i}
+                    + (k_4 w_4^2 e_3 - b_4 w_4^2 e_1 - b_4 w_4^2 e_2) \cdot \frac{\partial x_k}{\partial q_i}
+                    \end{multline}
+
+                    *Note that $q_i$ above refers to an arbitrary state variable, not necessarily a quaternion.
+
+                    From this, the following expressions for $\Phi$ are computed.
+
+                    \begin{multline}
+                    \Phi_x = 2(k_1 w_1^2 + k_2 w_2^2 + k_3 w_3^2 + k_4 w_4^2)(q_y q_w + q_x q_z)
+                    + (-b_1 w_1^2 + b_2 w_2^2 + b_3 w_3^2 - b_4 w_4^2) (1-2(q_y^2 + q_z^2))
+                    + 2(b_1 w_1^2 + b_2 w_2^2 - b_3 w_3^2 - b_4 w_4^2) (q_x q_y - q_z q_w)
+                    \end{multline}
+
+                    \begin{multline}
+                    \Phi_y = 2(k_1 w_1^2 + k_2 w_2^2 + k_3 w_3^2 + k_4 w_4^2)(q_z q_y - q_x q_w)
+                    + 2(-b_1 w_1^2 + b_2 w_2^2 + b_3 w_3^2 - b_4 w_4^2) (q_z q_w + q_x q_y)
+                    + (b_1 w_1^2 + b_2 w_2^2 - b_3 w_3^2 - b_4 w_4^2) (1-2(q_x^2 + q_z^2))
+                    \end{multline}
+
+                    \begin{multline}
+                    \Phi_z = (k_1 w_1^2 + k_2 w_2^2 + k_3 w_3^2 + k_4 w_4^2) (1-2(q_x^2 + q_y^2))
+                    + 2(-b_1 w_1^2 + b_2 w_2^2 + b_3 w_3^2 - b_4 w_4^2) (q_z q_x - q_y q_w)
+                    + 2(b_1 w_1^2 + b_2 w_2^2 - b_3 w_3^2 - b_4 w_4^2) (q_x q_w + q_z q_y)
+                    \end{multline}
+
+                    \begin{multline}
+                    \Phi_{q_w} = \frac{l}{\sqrt{2}}
+                    [
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
+                    b_1 w_1^2 + b_3 w_3^2  \\
+                    k_1 w_1^2 - k_3 w_3^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} -2 q_z \\ 2 q_z \\ 2 q_x - 2 q_y\end{bmatrix}
+                    +
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
+                    b_2 w_2^2 + b_4 w_4^2  \\
+                    k_2 w_2^2 - k_4 w_4^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} -2 q_z \\ -2 q_z \\ 2 q_x + 2 q_y\end{bmatrix}
+                    ]
+                    \end{multline}
+
+                    \begin{multline}
+                    \Phi_{q_x} = \frac{l}{\sqrt{2}}
+                    [
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
+                    b_1 w_1^2 + b_3 w_3^2  \\
+                    k_1 w_1^2 - k_3 w_3^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} 2 q_y \\ 2 q_y - 4 q_x \\ 2 q_w + 2 q_z\end{bmatrix}
+                    +
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
+                    b_2 w_2^2 + b_4 w_4^2  \\
+                    k_2 w_2^2 - k_4 w_4^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} 2 q_y \\ -4 q_x - 2 q_y \\ 2 q_w - 2 q_z\end{bmatrix}
+                    ]
+                    \end{multline}
+
+                    \begin{multline}
+                    \Phi_{q_y} = \frac{l}{\sqrt{2}}
+                    [
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
+                    b_1 w_1^2 + b_3 w_3^2  \\
+                    k_1 w_1^2 - k_3 w_3^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} 2 q_x - 4 q_y \\ 2 q_x \\ 2 q_z - 2 q_w\end{bmatrix}
+                    +
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
+                    b_2 w_2^2 + b_4 w_4^2  \\
+                    k_2 w_2^2 - k_4 w_4^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} 2 q_x + 4 q_y\\ -2 q_x \\ 2 q_z + 2 q_w\end{bmatrix}
+                    ]
+                    \end{multline}
+
+                    \begin{multline}
+                    \Phi_{q_z} = \frac{l}{\sqrt{2}}
+                    [
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} -b_1 w_1^2 - b_3 w_3^2 \\
+                    b_1 w_1^2 + b_3 w_3^2  \\
+                    k_1 w_1^2 - k_3 w_3^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} -2q_w - 4 q_z \\ 2 q_w - 4 q_z \\ 2 q_x + 2 q_y\end{bmatrix}
+                    +
+                    (T_{e \rightarrow E}
+                    \begin{bmatrix} b_2 w_2^2 + b_4 w_4^2 \\
+                    b_2 w_2^2 + b_4 w_4^2  \\
+                    k_2 w_2^2 - k_4 w_4^2
+                    \end{bmatrix})
+                    \cdot
+                    \begin{bmatrix} -2 q_w + 4 q_z \\ -4 q_z - 2 q_w \\ 2 q_y - 2 q_x\end{bmatrix}
+                    ]
+                    \end{multline}
+
+
+                    The transformation matrix from body coordinates to earth-fixed coordinates, $T_{e \rightarrow E}$, is given by
+
+                    \begin{equation}
+                    T_{e \rightarrow E} = 
+                    \begin{bmatrix}
+                    1-2(q_y^2-q_z^2)    &   2(q_x^2 q_y^2-q_z^2 q_w^2   &   2(q_y q_w + q_x q_z) \\
+                    2(q_z q_w + q_x q_y &   1-2(q_x^2+q_z^2)            &   2(q_z q_y - q_x q_w) \\
+                    2(q_z q_x - q_y q_w &   2(q_x q_w + q_z q_y)        &   1-2(q_x^2+q_y^2)
+                    \end{bmatrix}
+                    \end{equation}
+
+
+                    The Lagrangian equations for the translational variables, $x$, $y$, $z$, can be easily solved for as
+
+                    \begin{align}
+                    \begin{split}
+                    \ddot x = \frac{\Phi_x}{m} \\
+                    \ddot y = \frac{\Phi_y}{m} \\
+                    \ddot z = \frac{\Phi_z}{m} -g
+                    \end{split}
+                    \end{align}
+
+                    However, the Lagrangian equations for the rotational variables, $q_w$, $q_x$, $q_y$, and $q_z$ is best solved during simulation with the assistance of a matrix equation solver (in this case, MatLab).
+
+                    \begin{multline}
+                    \begin{bmatrix}
+                    4J_{xx}q_x^2+4J_{yy}q_y^2+4 J_{zz}q_z^2     &   4(J_{zz}-J_{yy})q_yq_z-4J_{xx}q_wq_x   &
+                    4(J_{xx}-J_{zz})q_xq_z-4J_{yy}q_wq_y        &   4(J_{yy}-J_{xx})q_xq_y-4J_{zz}q_wq_z   \\
+                    4(J_{zz}-J_{yy})q_yq_z-4J_{xx}q_wq_x        &   4J_{xx}q_w^2+4J_{yy}q_z^2+4J_{zz}q_y^2      &
+                    4(J_{yy}-J_{xx})q_wq_z-4J_{zz}q_xq_y        &   4(J_{xx}-J_{zz})q_wq_y-4J_{yy}q_xq_z   \\
+                    4(J_{xx}-J_{zz})q_xq_z-4J_{yy}q_wq_y        &   4(J_{yy}-J_{xx})q_wq_z-4J_{zz}q_xq_y    &
+                    4J_{xx}q_z^2+4J_{yy}q_w^2+4J_{zz}q_x^2      &   4(J_{zz}-J_{yy})q_wq_x-4J_{xx}q_yq_z   \\
+                    4(J_{yy}-J_{xx})q_xq_y-4J_{zz}q_wq_z        &   4(J_{xx}-J_{zz})q_wq_y-4J_{yy}q_xq_z   &
+                    4(J_{zz}-J_{yy})q_wq_x-4J_{xx}q_yq_z        &   4J_{xx}q_y^2+4J_{yy}q_x^2+4J_{zz}q_w^2
+                    \end{bmatrix}
+                    \begin{bmatrix}
+                    \ddot q_w \\ \ddot q_x \\ \ddot q_y \\ \ddot q_z
+                    \end{bmatrix}
+                    =
+                    \begin{bmatrix}
+                    \Delta_0 \\ \Delta_1 \\ \Delta_2 \\ \Delta_3
+                    \end{bmatrix}
+                    \end{multline}
+
+                    Here,
+                    \begin{align}
+                    \begin{split}
+                    \Delta_0 = \Phi_{q_w}
+                    -8J_{xx}\dot q_w\dot q_x q_x - 8J_{yy} \dot q_w \dot q_y q_y - 8J_{zz} \dot q_w \dot q_z q_z
+                    + 8J_{xx}\dot q_x^2 q_w + 8J_{yy} \dot q_y^2 q_w + 8J_{zz} \dot q_z^2 q_w \\
+                    -(-8J_{xx}+8J_{yy})\dot q_x \dot q_y q_z - (-8J_{zz}+8J_{xx}) \dot q_x \dot q_z q_y
+                    -(-8J_{yy}+8J_{zz})\dot q_y \dot q_z q_x \\
+                    \Delta_1 = \Phi_{q_x}
+                    -8J_{xx}\dot q_w\dot q_x q_w - 8J_{yy} \dot q_x \dot q_z q_z - 8J_{zz} \dot q_x \dot q_y q_y
+                    + 8J_{xx}\dot q_w^2 q_x + 8J_{yy} \dot q_z^2 q_x + 8J_{zz} \dot q_y^2 q_x \\
+                    -(-8J_{yy}+8J_{zz})\dot q_y \dot q_z q_w - (-8J_{xx}+8J_{yy}) \dot q_w \dot q_z q_y
+                    -(-8J_{zz}+8J_{xx})\dot q_w \dot q_y q_z \\
+                    \Delta_2 = \Phi_{q_y}
+                    -8J_{xx}\dot q_y\dot q_z q_z - 8J_{yy} \dot q_w \dot q_y q_w - 8J_{zz} \dot q_x \dot q_y q_x
+                    + 8J_{xx}\dot q_z^2 q_y + 8J_{yy} \dot q_w^2 q_y + 8J_{zz} \dot q_x^2 q_y \\
+                    -(-8J_{xx}+8J_{yy})\dot q_w \dot q_z q_x - (-8J_{yy}+8J_{zz}) \dot q_w \dot q_x q_z
+                    -(-8J_{zz}+8J_{xx})\dot q_x \dot q_z q_w \\
+                    \Delta_3 = \Phi_{q_z}
+                    -8J_{xx}\dot q_y\dot q_z q_y - 8J_{yy} \dot q_x \dot q_z q_x - 8J_{zz} \dot q_w \dot q_z q_w
+                    + 8J_{xx}\dot q_y^2 q_z + 8J_{yy} \dot q_x^2 q_z + 8J_{zz} \dot q_w^2 q_z \\
+                    -(-8J_{zz}+8J_{xx})\dot q_w \dot q_y q_x - (-8J_{xx}+8J_{yy}) \dot q_x \dot q_y q_w
+                    -(-8J_{yy}+8J_{zz})\dot q_w \dot q_x q_y \\
+                    \end{split}
+                    \end{align}
+
+                    *Note: To avoid singularities when solving this matrix, it is necessary to add the additional constraint obtained from the second derivative of the quaternion normalization condition. From
+
+                    \begin{equation}
+                    q_w^2 + q_x^2 + q_y^2 + q_z^2 = 1
+                    \end{equation}
+
+                    , the additional constraint,
+
+                    \begin{equation}
+                    q_w \ddot q_w+ q_x \ddot q_x + q_y \ddot q_y + q_z \ddot q_z = -\dot q_w^2 - \dot q_x^2 - \dot q_y^2 - \dot q_z^2
+                    \end{equation}
+
+                    is obtained.
+
+
+                    <h1>Feedback Control</h1>
+
+                    The feedback control used in this project is that proposed by Fresk and Nikolakopoulos. The controller aims to apply a torque to the quadcopter, as dictated by the following expression.
+
+                    \begin{equation}
+                    \tau = P_q \begin{bmatrix} q_x^{err} \\ q_y^{err} \\ q_z^{err} \end{bmatrix}
+                    -P_w \begin{bmatrix} w_x \\ w_y \\ w_z \end{bmatrix}
+                    \end{equation}
+
+                    In simulation, the values, $P_q = 1.2$ and $P_w = 18$ performed well.
+
+                    To convert these values of desired torque to desired angular velocities of each rotor, $w_k$, the following relation between rotor angular velocities to resulting torques were used.
+
+                    \begin{equation}
+                    \begin{bmatrix}\tau_x \\ \tau_y \\ \tau_z\end{bmatrix}
+                    =
+                    \begin{bmatrix}
+                    \frac{l}{\sqrt{2}}(k_1w_1^2+k_2w_2^2-k_3w_3^2-k_4w_4^2) \\
+                    \frac{l}{\sqrt{2}}(k_2w_2^2+k_3w_3^2-k_1w_1^2-k_4w_4^2) \\
+                    l(b_1w_1^2-b_2w_2^2+b_3w_3^2-b_4w_4^2)
+                    \end{bmatrix}
+                    \end{equation}
+
+                    Solving for each $w_k$, the following expressions were obtained.
+
+                    \begin{align}
+                    \begin{split}
+                    w_2 = \sqrt{\frac{\frac{b_1}{k_1}\frac{\gamma_1+\gamma_3}{2} + \frac{b_3}{k_3}\frac{\gamma_2+\gamma_3}{2}
+                    + \frac{b_4}{k_4}\frac{\gamma_1+\gamma_2}{2}-\gamma_4}{\frac{b_1}{k_1}k_2+b_2+\frac{b_3}{k_3}k_2+\frac{b_4}{k_4}k_2}} \\
+                    w_1 = \sqrt{\frac{\frac{\gamma_1+\gamma_3}{2}-k_2w_2^2}{k_1}} \\
+                    w_3 = \sqrt{\frac{\frac{\gamma_2+\gamma_3}{2}-k_2w_2^2}{k_3}} \\
+                    w_4 = \sqrt{\frac{k_2w_2^2-\frac{\gamma_1+\gamma_2}{2}}{k_4}}
+                    \end{split}
+                    \end{align}
+
+                    Here, the following $\gamma_1, \gamma_2, \gamma_3, \gamma_4$ were used to simplify the above expression.
+
+                    \begin{align}
+                    \begin{split}
+                    \gamma_1 = \frac{\sqrt{2}}{l} \tau_x \\
+                    \gamma_2 = \frac{\sqrt{2}}{l} \tau_y \\
+                    \gamma_3 = \frac{m a_u}{cos(2(acos(q_w))} \\
+                    \gamma_4 = \frac{\tau_z}{l}
+                    \end{split}
+                    \end{align}
+
+                    , where $a_u$ is the user's desired acceleration earth-fixed upwards, $m$ is the quadcopter mass, $l$ is the length of a quadcopter leg, and $\tau$ is the desired acceleration.
+
+                    <h1>MatLab Simulation</h1>
+                    I’ve coded up a MatLab simulation using the above equations of motion. The code is available <a href="https://github.com/kenk42292/quad_sim_quat_lag_ctrl">here</a>. Below, I’ve recorded simulation visuals for convenience.
+
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/tQ971yqT8l8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/jquery.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+        <!-- Custom JavaScript -->
+        <script src="/js/custom.js"></script>
+    </body>
+</html>
+
+
