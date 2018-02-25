@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Convolutional Neural Networks</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="style.css">
+
+        <!-- MathJax -->
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: {
+                    TagSide: "right"
+                },
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+                    processEscapes: true
+                },
+                jax: ["input/TeX", "output/CHTML"],
+                CommonHTML: {
+                    scale: 70,
+                    linebreaks: { automatic: true },
+                    width: "80% container"
+                }
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="header-wrapper">
+        </div>
+
+        <!-- Project Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <h1>Convolutional Neural Networks</h1>
+                    <h3>Introduction</h3>
+                    <p>
+                        In this post, I walk through a brief overview of Convolutional Neural Networks. These follow directly from Vanilla Neural Networks, covered <a href="/content/projects-and-demos/vanilla-neural-nets/">here</a>. Convolutional Neural Nets are a type of neural net specifically designed for images. Instead of taking vectors as inputs, these networks take $3D$ matrices; the computer representation of images.
+                    </p>
+
+                    <h3>Searching for a Pattern in a 3D Image</h3>
+                    <p>
+                        The input to a convolutional net is a $3$-dimensional matrix; a computer's representation of an image, with a depth of $3$ for the color-channels. The idea behind convolutional nets is to break the input image up into multiple <i>sub-images</i>. Due to an image's $2$-dimensional spatial locality, we can assume that these sub-images have some sort of learnable features, or <i>patterns</i>. To search for the existence of patterns, we cross-correlate the input image with $3$-dimensional matrices that ideally represent the most defining patterns in the inputs.
+                    </p>
+                    <p>
+                        The diagram below illustrates the process of <i>searching</i> for 5 patterns of dimensions $3 \times 5 \times 5$ in a $3$-dimensional input image.
+                    </p>
+
+                    <img class="alignnone wp-image-302 size-large" src="/images/conv-3d.png" alt="conv-3d" width="1024" height="505" />
+
+                    &nbsp;
+
+                    \begin{align*}
+                    \begin{split}
+                    \boldsymbol{Y}_{kij} = f(\boldsymbol{Z}_{kij}) \\
+                    \boldsymbol{Z}_{kij} = \sum_{c=0}^{D-1} \sum_{a=0}^{m-1} \sum_{b=0}^{n-1} \boldsymbol{X}(k+c, i+a, j+b) \boldsymbol{w}_{k}(c,a,b) + \boldsymbol{b}_k
+                    \end{split}
+                    \end{align*}
+                    <ul>
+                        <li>$\boldsymbol{X}$: The $3$-dimensional matrix input with a height of $M$, width of $N$, and depth of $D$.</li>
+                        <li>$\boldsymbol{w}_{k}$: The $3$-dimensional weight matrix for the $k$'th pattern.</li>
+                        <li>$\boldsymbol{Z}$: The $3$-dimensional matrix result of cross-correlation.</li>
+                        <li>$\boldsymbol{Y}$: The $3$-dimensional matrix output of the non-linearity, $f$.</li>
+                    </ul>
+
+                    <p>
+                        Notice that the output of each $3$-dimensional cross-correlation between input and pattern-weight is still a $2$-dimensional matrix, since the inputs and weights have the same depth. Because of this, we can again squish these $2$-dimensional matrices together into one $3$-dimensional matrix and pass this into a non-linearity, as we did before.
+                    </p>
+                    <p>
+                        The output of the pattern search - and consequently, that of the non-linearity - is a $3$-dimensional matrix. Thus, it can be passed into another convolutional net. Or, in order to map this to a $1$-dimensional output vector, we can reshape the $3$-dimensional output to a $1$-dimensional vector, and pass it into a vanilla neural net.
+                    </p>
+
+                    <h3>Learning the Weights: Back-Propagation</h3>
+                    <p>
+                        Just like for the Vanilla Neural Net, we'd like to use back-propagation to find $\boldsymbol{\frac{\partial L}{\partial w}}$ and $\boldsymbol{\frac{\partial L}{\partial b}}$. With this, we can iteratively decrease the inaccuracy, or loss, of our neural net by applying the following rules to our weights and biases, just as we've done for our vanilla neural net.
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \boldsymbol{w} \leftarrow \boldsymbol{w} - \eta \boldsymbol{\frac{\partial L}{\partial w}} \\
+                    \boldsymbol{b} \leftarrow b - \eta \boldsymbol{\frac{\partial L}{\partial b}}
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        Assuming we've connected this convolutional layer to a subsequent vanilla neural net, we should be given the value of $\boldsymbol{\delta} = \boldsymbol{\frac{\partial L}{\partial y}}$. Given this, we must find $\boldsymbol{\frac{\partial L}{\partial w}}$ and $\boldsymbol{\frac{\partial L}{\partial b}}$.
+                    </p>
+
+                    <h4>Finding $\boldsymbol{\frac{\partial L}{\partial w_k}}$</h4>
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-1">
+                                <p>
+                                    We'll first compute $\boldsymbol{\frac{\partial L}{\partial z}}$ by passing $\boldsymbol{\frac{\partial L}{\partial y}}$ through our non-linearity. Assuming a sigmoid ($\sigma(z) = \frac{1}{1+e^{-z}}$) as our non-linear function, we'll simply end up with
+                                </p>
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial z}} = \boldsymbol{\frac{\partial L}{\partial y}} \boldsymbol{\frac{\partial y}{\partial z}} = \boldsymbol{\frac{\partial L}{\partial y}} \sigma(\boldsymbol{z})(1-\sigma(\boldsymbol{z}))
+                                \end{equation*}
+
+                                <p>
+                                    The chain rule tells us that
+                                </p>
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial w_k[c,a,b]}} = \sum_{i=0}^{M-m} \sum_{j=0}^{N-n} \boldsymbol{\frac{\partial L}{\partial z_k[i,j]}} \cdot \boldsymbol{\frac{\partial z_k[i,j]}{\partial w_k[c,a,b]}}
+                                \end{equation*}
+
+                                <p>
+                                    From the definition of $\boldsymbol{z}$, it's apparent that $\boldsymbol{\frac{\partial z_k[i,j]}{\partial w_k[c,a,b]}} = \boldsymbol{X}[c, i+a, j+b]$.
+                                    Therefore, we see that
+                                </p>
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial w_k[c,a,b]}} = \sum_{i=0}^{M-m} \sum_{j=0}^{N-n} \boldsymbol{\frac{\partial L}{\partial z_k[i,j]}} \cdot \boldsymbol{X}[c,i+a,j+b].
+                                \end{equation*}
+
+                                Recognizing this as the cross-correlation function, we can rewrite this as
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial w_k[c]}} = \boldsymbol{\frac{\partial L}{\partial z_k}} \star \boldsymbol{X}_c
+                                \end{equation*}
+
+                                Further, we see that the above represents $D$ cross-correlations between the $2$-dimensional $\boldsymbol{\frac{\partial L}{\partial z_k}}$ and the $c$'th $2$-dimensional depth slice of $\boldsymbol{X}$. This can be compactly computed via the single $3$-dimensional cross-correlation as follows.
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial w_k}} = \boldsymbol{\frac{\partial L}{\partial z_k}} \star \boldsymbol{X}
+                                \end{equation*}
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <h4>Finding $\boldsymbol{\frac{\partial L}{\partial b_k}}$</h4>
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-1">
+                                The chain rule tells us that
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial b_k}} = \sum_{i=0}^{M-m} \sum_{j=0}^{N-n} \boldsymbol{\frac{\partial L}{\partial z_k[i,j]}} \cdot \boldsymbol{\frac{\partial z_k[i,j]}{\partial b_k}}
+                                \end{equation*}
+
+                                From the definition of $\boldsymbol{z}_{k,i,j}$, we see that $\boldsymbol{\frac{\partial z_k[i,j]}{\partial b_k}} = 1$. Therefore, we can conclude that $\boldsymbol{\frac{\partial L}{\partial b_k}} = \sum_{i=0}^{M-m} \sum_{j=0}^{N-n} \boldsymbol{\frac{\partial L}{\partial z_k[i,j]}}$.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <h4>Finding $\boldsymbol{\frac{\partial L}{\partial X}}$</h4>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-1">
+                                <p>
+                                    In back-propagation, there's one more thing we have to do. And that is to pass on $\boldsymbol{\frac{\partial L}{\partial X}}$ to the previous layer, so the previous layer can use it as $\boldsymbol{\frac{\partial L}{\partial Y}}$ during its back-propagation.
+                                </p>
+                                <p>
+                                    First, we'll write the mathematical definitions of $\boldsymbol{\frac{\partial L}{\partial X[c,p,q]}}$ and $\boldsymbol{Z_k}$. To avoid tangling up variables, we'll use slightly different variable names.
+                                </p>
+
+                                \begin{equation*}
+                                \boldsymbol{\frac{\partial L}{\partial X[\gamma,p,q]}} = \sum_{k=0}^{P-1} \sum_{\alpha=0}^{m-1} \sum_{\beta=0}^{n-1} \frac{\partial L}{\partial Z_k[p-\alpha, q-\beta]} \cdot \frac{\partial Z_k[p-\alpha, q-\beta]}{\partial X[\gamma,p,q]}
+                                \end{equation*}
+
+                                \begin{equation*}
+                                Z_k[i,j] = \sum_{c=0}^{D-1} \sum_{a=0}^{m-1} \sum_{b=0}^{n-1} X[c, i+a, j+b] \cdot w_k[c,a,b]
+                                \end{equation*}
+
+                                <p>
+                                    First, we let $i=p-\alpha$ and $j=q-\beta$.
+                                </p>
+
+                                \begin{equation*}
+                                Z_k[p-\alpha, q-\beta] = \sum_{c=0}^{D-1} \sum_{a=0}^{m-1} \sum_{b=0}^{n-1} X[c, p-\alpha+a, q-\beta+b] \cdot w_k[c,a,b]
+                                \end{equation*}
+
+                                <p>
+                                    Differentiating the above with respect to $X[\gamma, p, q]$ gives us
+                                </p>
+
+                                \begin{equation*}
+                                \frac{\partial Z_k[p-\alpha, q-\beta]}{\partial X[\gamma, p, q]} =
+                                \frac{\partial \sum_{c=0}^{D-1} \sum_{a=0}^{m-1} \sum_{b=0}^{n-1} X[c, p-\alpha+a, q-\beta+b] \cdot w_k[c, a, b]}{\partial X[\gamma, p, q]}
+                                \end{equation*}
+
+                                <p>
+                                    This can be rewritten as 
+                                </p>
+
+                                \begin{equation*}
+                                \frac{\partial Z_k[p-\alpha, q-\beta]}{\partial X[\gamma, p, q]} =
+                                \sum_{c=0}^{D-1} \sum_{a=0}^{m-1} \sum_{b=0}^{n-1} \frac{\partial X[c, p-\alpha+a, q-\beta+b] \cdot w_k[c, a, b]}{\partial X[\gamma, p, q]}
+                                \end{equation*}
+
+                                <p>
+                                    The only terms in the numerator that are affected by the matrix entry, $X[\gamma, p, q]$, and thus aren't cancelled out, occur when $c=\gamma$, $p=p-\alpha+a$, and $q=q-\beta+b$; in other words, when $c=\gamma$, $a=\alpha$, and $b=\beta$.
+
+                                    Substituting in these values, we arrive at
+                                </p>
+
+                                \begin{equation*}
+                                \frac{\partial Z_k[p-\alpha,q-\beta]}{\partial X[\gamma,p,q]} = w_k[\gamma, \alpha, \beta]
+                                \end{equation*}
+
+                                <p>
+                                    Thus, we can see the following:
+                                </p>
+
+                                \begin{equation*}
+                                \frac{\partial L}{\partial X[\gamma,p,q]} = \sum_{k=0}^{P-1} \left[ \sum_{\alpha=0}^{m-1} \sum_{\beta=0}^{n-1} \frac{\partial L}{\partial Z_k[p-\alpha, q-\beta]} \cdot w_k[\gamma,\alpha,\beta]\right]
+                                \end{equation*}
+
+                                <p>
+                                    Finally, seeing that the bracketed section of the above equation coincides with $2$-dimensional convolution, we simplify the above expression to
+                                </p>
+
+                                \begin{equation*}
+                                \frac{\partial L}{\partial X_{\gamma}} = \sum_{k=0}^{P-1} \frac{\partial L}{\partial z_k} * w_k[\gamma]
+                                \end{equation*}
+
+                                <p>
+                                    which may be computed as a $3$-dimensional convolution (just like $\frac{\partial L}{\partial w_k}$), if the convolutional net's configuration allows.
+                                    Note that above, some of our expressions depended on elements of matrices that were out of the matrix's bounds. For example, consider the expression, $\frac{\partial Z_k[p-\alpha,q-\beta]}{\partial X[\gamma,p,q]}$, when $p=0$ and $q=0$. These values should, logically, be set to $0$. In this case, for example, we reason that there's no way a change in $X[\gamma, 0, 0]$ can affect a non-existent value like $Z_k[-\alpha,-\beta]$.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Conclusion</h3>
+                    <p>
+                        In this post, we covered the basic workings of a convolutional net. We went over the feed-forward process that detects patterns in the input image, as well as the back-propagation process that trains the network to detect the most effective patterns. In the next post, I'll be covering the <i>MaxPool</i> layer, a neural layer that is often used in conjunction with convolutional nets.
+
+                        As mentioned in my previous <a href="/content/projects-and-demos/vanilla-neural-nets/"> post on vanilla neural nets</a>, here's the code for both <a href="https://github.com/kenk42292/mochi-python">python</a> and <a href="https://github.com/kenk42292/mochi">C++</a> neural network implementations.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/jquery.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+        <!-- Custom JavaScript -->
+        <script src="/js/custom.js"></script>
+    </body>
+</html>
+
+
+
+
+
+
