@@ -9,7 +9,7 @@
         <link rel="stylesheet" type="text/css" href="/css/style.css">
         <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
-        <link rel="stylesheet" type="text/css" href="/content/projects/quadcopter-quaternion-lagrangian/style.css">
+        <link rel="stylesheet" type="text/css" href="/content/projects-and-demos/quadcopter-quaternion-lagrangian/style.css">
 
         <!-- MathJax -->
         <script type="text/x-mathjax-config">
@@ -46,13 +46,13 @@
 
                     <h1>Introduction</h1>
 
-                    In this project, I derive the mathematical model for the X-configuration quadcopter via Lagrangian Equations of motion and quaternions. This is somewhat similar to what I've done in <a href="/content/projects/quadcopter-euler-lagrangian/">this post</a>. I then implement a feedback controller to stabilize the quadcopter attitude with respect to user-inputs.
+                    In this project, I derive the mathematical model for the X-configuration quadcopter via Lagrangian Equations of motion and quaternions. This is somewhat similar to what I've done in <a href="/content/projects-and-demos/quadcopter-euler-lagrangian/">this post</a>. I then implement a feedback controller to stabilize the quadcopter attitude with respect to user-inputs.
 
                     <h1>Derivation of the Lagrangian EOMs</h1>
 
                     <h3>Kinetic and Potential Energy Difference</h3>
 
-                    The Lagrangian energy expression, $L$, is unchanged from the Euler Angle Derivation of quadcopter dynamics in <a href="/content/projects/quadcopter-euler-lagrangian/">this post</a>.
+                    The Lagrangian energy expression, $L$, is unchanged from the Euler Angle Derivation of quadcopter dynamics in <a href="/content/projects-and-demos/quadcopter-euler-lagrangian/">this post</a>.
 
                     \begin{equation}
                     L = \frac{1}{2} m (\dot x^2 + \dot y^2 + \dot z^2) + \frac{1}{2} (J_{xx} w_x^2 + J_{yy} w_y^2 + J_{zz} w_z^2) - mgz

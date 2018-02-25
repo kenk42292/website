@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Quadcopter Attitude Emulation with Gyroscope and Accelerometer</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
+
+        <!-- MathJax -->
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: {
+                    TagSide: "right"
+                },
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+                    processEscapes: true
+                },
+                jax: ["input/TeX", "output/CHTML"],
+                CommonHTML: {
+                    scale: 70,
+                    linebreaks: { automatic: true },
+                    width: "80% container"
+                }
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="header-wrapper">
+        </div>
+
+        <!-- Project Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <h1> Quadcopter Attitude Emulation with Gyroscope and Accelerometer </h1>
+
+                    <h1>Introduction</h1>
+                    In this project, I calculate quaternion parameters from accelerometer readings and gyroscope readings. The quaternion parameters are then passed through a simple complementary filter. Upon obtaining the parameters of this rotation formalism, the orientation of the sensor platform (in this case, a quadcopter) is emulated on screen.
+                    <h1>Quaternion Basics</h1>
+                    Quaternions are a set of four parameters utilized as a rotation and orientation formalism, often interpreted as a point along the surface of a four-dimensional hypersphere. These points are, in this project, referred to as $\begin{bmatrix} q_w \\ q_x \\ q_y \\ q_z \end{bmatrix}$.
+                    <h2>Quaternion Multiplication</h2>
+                    Quaternion multiplication is associative and non-commutative. The product of two arbitrary quaternions, $q_0 = \begin{bmatrix} q_{0w} \\ q_{0x} \\ q_{0y} \\ q_{0z} \end{bmatrix}$ and $q_1 = \begin{bmatrix} q_{1w} \\ q_{1x} \\ q_{1y} \\ q_{1z} \end{bmatrix}$, are defined as
+
+                    \begin{multline}
+                    q_0 \bigotimes q_1 =
+                    q_{0w} q_{1w} - q_{0x} q_{1x} - q_{0y} q_{1y} - q_{0z} q_{1z}
+                    + (q_{0w} q_{1x} + q_{0x} q_{1w} + q_{0y} q_{1z} - q_{0z} q_{1y})i
+                    + (q_{0w} q_{1y} - q_{0x} q_{1z} + q_{0y} q_{1w} + q_{0z} q_{1x})j
+                    + (q_{0w} q_{1z} + q_{0x} q_{1y} - q_{0y} q_{1x} + q_{0z} q_{1w})k
+                    =
+                    \begin{bmatrix}
+                    q_{0w} q_{1w} - q_{0x} q_{1x} - q_{0y} q_{1y} - q_{0z} q_{1z} \\
+                    q_{0w} q_{1x} + q_{0x} q_{1w} + q_{0y} q_{1z} - q_{0z} q_{1y} \\
+                    q_{0w} q_{1y} - q_{0x} q_{1z} + q_{0y} q_{1w} + q_{0z} q_{1x} \\
+                    q_{0w} q_{1z} + q_{0x} q_{1y} - q_{0y} q_{1x} + q_{0z} q_{1w}
+                    \end{bmatrix}
+                    \end{multline}
+
+                    The above result can be achieved by multiplying each elements of $q_0$ with all elements of $q_1$, keeping in mind that $i \cdot j = k$, $j \cdot k = i$, $k \cdot i = j$. Similarly, $k \cdot j = -i$, $j \cdot i = -k$, and $i \cdot k = -j$. Finally, any of the imaginary units ($i$, $j$, $k$), when multiplied by itself, is $-1$.
+                    <h2>Quaternion Rotation and its Rotation Matrix</h2>
+                    Rotation of a vector, $v = \begin{bmatrix} x \\ y \\ z \end{bmatrix}$ by a quaternion, $q = \begin{bmatrix} q_w \\ q_x \\ q_y \\ q_z \end{bmatrix}$, is accomplished through prepending a $0$ to the vector to be rotated, and multiplying by
+                    the quaternion, as well as it's conjugate, $\bar q = \begin{bmatrix} q_w \\ -q_x \\ -q_y \\ -q_z \end{bmatrix}$ in the
+                    following order.
+
+                    \begin{equation}
+                    q'=
+                    \begin{bmatrix} q_w \\ q_x \\ q_y \\ q_z \end{bmatrix}
+                    \bigotimes
+                    \begin{bmatrix} 0 \\ x \\ y \\ z \end{bmatrix}
+                    \bigotimes
+                    \begin{bmatrix} q_w \\ -q_x \\ -q_y \\ -q_z \end{bmatrix}
+                    \end{equation}.
+
+                    It is worth noting that, for the above to be a valid rotation, the quaternion must have unit norm. When the above operation is performed, the equivalent rotation matrix is found to be
+
+                    \begin{equation}
+                    \begin{bmatrix}
+                    1-2(q_y^2+q_z^2) &amp; 2(q_x q_y - q_z q_w) &amp; 2(q_y q_w + q_x q_z) \\
+                    2(q_z q_w + q_x q_y) &amp; 1-2(q_x^2+q_z^2) &amp; 2(q_z q_y - q_x q_w) \\
+                    2(q_z q_x - q_y q_w) &amp; 2(q_x q_w + q_z q_y) &amp; 1-2(q_x^2+q_y^2)
+                    \end{bmatrix}
+                    \end{equation}
+                    <h2>Quaternion parameters to Angular Velocity</h2>
+                    Quaternion parameters, their time-derivatives, and angular velocoity share the following relation.
+
+                    \begin{align}
+                    \begin{split}
+                    w_x = 2 (q_w \dot q_x + q_z \dot q_y - q_y \dot q_z - q_x \dot q_w) \\
+                    w_y = 2 (q_x \dot q_z + q_w \dot q_y - q_z \dot q_x - q_y \dot q_w) \\
+                    w_z = 2 (q_w \dot q_z + q_y \dot q_x - q_x \dot q_y - q_z \dot q_w)
+                    \end{split}
+                    \end{align}
+
+                    From the above, and the quaternion unit-norm constraint, the following relation is derived.
+
+                    \begin{align}
+                    \begin{split}
+                    \dot q_w = \frac{-q_x w_x - q_y w_y - q_z w_z}{2} \\
+                    \dot q_x = \frac{q_w w_x - q_z w_y + q_y w_z}{2} \\
+                    \dot q_y = \frac{q_w w_y - q_x w_z + q_z w_x}{2} \\
+                    \dot q_z = \frac{q_w w_z + q_x w_y - q_y w_x}{2}
+                    \end{split}
+                    \end{align}
+                    <h1>Quaternion Parameters from Accelerometer</h1>
+                    The accelerometer returns the gravity vector in body-fixed coordinates. Thus, to find the attitude quaternion parameters of the accelerometer, the rotation quaternion between the two vectors (gravity and fixed $\begin{bmatrix} 0\\ 0\\ 1\end{bmatrix}$) should be found.
+
+                    The 3-D vector component of a quaternion, $\begin{bmatrix} x \\ y \\ z \end{bmatrix}$ representing such a rotation between two vectors, $v_1$ and $v_2$, can be found through the cross product of the two vectors, while the $q_w$ component can be found through the following expression:
+
+                    \begin{equation}
+                    q_w = \sqrt{(v_1 \cdot v_1)(v_2 \cdot v_2) + v_1 \cdot v_2}
+                    \end{equation}
+                    <h1>Quaternion Parameters from Gyroscope</h1>
+                    A gyroscope outputs the angular velocity in the quadcopter's body-fixed frame. Above, we found the time-derivatives of each of the quaternion parameters.
+
+                    \begin{align}
+                    \begin{split}
+                    \dot q_w = \frac{-q_x w_x - q_y w_y - q_z w_z}{2} \\
+                    \dot q_x = \frac{q_w w_x - q_z w_y + q_y w_z}{2} \\
+                    \dot q_y = \frac{q_w w_y - q_x w_z + q_z w_x}{2} \\
+                    \dot q_z = \frac{q_w w_z + q_x w_y - q_y w_x}{2}
+                    \end{split}
+                    \end{align}
+
+                    By integrating the time derivatives of the quaternion parameters, an approximation of the current quadcopter attitude quaternion can be found.
+                    <h1>The Complementary Filter</h1>
+                    Because accelerometer-based quaternion parameters are more susceptible to high-frequency noise while gyroscope-based quaternion parameters are more susceptible to low-frequency drift, a complementary filter was utilized to mitigate accelerometer noise, as well as gyroscope drift.
+
+                    \begin{equation}
+                    q = (1-\alpha) q_{gyro} + \alpha q_{accel}
+                    \end{equation}
+
+                    In this particular case, an $\alpha$ value of 0.02 was used.
+
+                    Here's the resulting product.
+
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/A6E8RQr9esc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+                    <p>
+                        One final note: If you notice, I never give the quadcopter any yaw. And that's because the accelerometer-based attitude cannot take into account any yaw. For example, relying solely on <em>how much</em> your head is tilted, you wouldn't be able to tell me whether your head is tilted north, or if it's tilted south. Though this shouldn't really take away from a quadcopter's ability to direct itself upwards and away from the ground, do we really want to let loose a drone with no sense of navigation?
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/jquery.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+        <!-- Custom JavaScript -->
+        <script src="/js/custom.js"></script>
+    </body>
+</html>
+
+
+
+
