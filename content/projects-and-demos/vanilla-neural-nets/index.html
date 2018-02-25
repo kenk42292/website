@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Vanilla Neural Networks</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
+
+        <!-- MathJax -->
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: {
+                    TagSide: "right"
+                },
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+                    processEscapes: true
+                },
+                jax: ["input/TeX", "output/CHTML"],
+                CommonHTML: {
+                    scale: 70,
+                    linebreaks: { automatic: true },
+                    width: "80% container"
+                }
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="header-wrapper">
+        </div>
+
+        <!-- Project Content -->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <h1>Vanilla Neural Networks</h1>
+                    <h3>Introduction</h3>
+                    <p>
+                        In this post, I walk through the inner workings of a vanilla neural network.
+                        In particular, I describe the simple forward-pass of input data, as well as the back-propagation during the training process.
+                    </p>
+
+                    <h3> The Overall Framework </h3>
+                    <p>
+                        Neural nets are a supervised learning framework that learns a function that maps input vectors, $x$, to output vectors, $y$.
+                        Vanilla neural nets take the simplest approach possible. It first multiples the input by a matrix, $w$, adds a bias vector, $b$, then
+                        passes the result through a <i>non-linearity</i>, like the sigmoid function, $\sigma(z)=\frac{1}{1+e^{-z}}$
+                        The expression for such a neural network is:
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \boldsymbol{z} = \boldsymbol{w} \boldsymbol{x} + \boldsymbol{b} \\
+                    \boldsymbol{y} = \sigma(\boldsymbol{z})
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        Aside from the obvious ability to express non-linear functions, the $\sigma$ function allows neural nets to be <i>stacked</i> on top of each other. That is, the output of one neural network can be fed into another, as input. This ability to conduct <i>deep learning </i> allows these networks to have an exponentially large function-space, with incredible <i>expressiveness</i>. Note that this expressiveness cannot be attained without the non-linearity, as multiple matrices will mathematically reduce to a single matrix.
+                    </p>
+
+                    <h3>Training a Neural Network</h3>
+                    <p>
+                        The crucial question now is, <i>How do we get the right weights and biases?</i> In other words, how should the initially random entries of the $\boldsymbol{w}$ matrices and $\boldsymbol{b}$ vectors be modified to align themselves so our neural net behaves like a good approximation between input and output? In this section, we'll mathematically analyze neural nets to figure out how we can coax these weights to reach better values.
+                    </p>
+
+                    <h4>The Loss Function</h4>
+                    <p>
+                        First, we need to define what it means for a neural net to be a <i>good</i> approximation of the mapping from input to output, given a number of training points. Intuitively, this mapping should be one that <i>fits</i> the training data best. That is, given the input vectors of the training data, the neural net should give back a vector similar to the corresponding desired outputs vectors.
+                    </p>
+
+                    <p>
+                        We'll define a metric of how <i>off</i> our net's outputs, $\boldsymbol{y}$, are with the desired outputs, $\boldsymbol{y^{*}}$, via a <i>loss function</i>. A common loss function to use is the <i>quadratic loss function</i>, defined as follows:
+                    </p>
+
+                    \begin{equation*}
+                    L(\boldsymbol{y} | \boldsymbol{w}, \boldsymbol{b}) = \frac{1}{2n} \sum_{\boldsymbol{x}} \lVert \boldsymbol{y(x)} - \boldsymbol{y}^{*} \rVert ^2
+                    \end{equation*}
+
+                    <p>
+                        Here, $n$ is the number of training points we're working with, $\boldsymbol{y}$ is the final output of the neural net, and $\boldsymbol{y}^{*} $ is the desired output. The quadratic loss function is just the average of the squared Euclidean distances between desired and actual outputs (the factor of $\frac{1}{2}$ is unimportant - only there to ease later calculations).
+                        Our goal is to decrease the value of this loss function as much as possible. We'll do this with what's called <i>gradient descent</i>.
+                    </p>
+                    <h4>Gradient Descent</h4>
+                    <p>
+                        The idea behind gradient descent is to iteratively decrease our loss by nudging all $w$ and $b$ to their optimal values.
+                        Each iteration, our goal is to achieve a negative $\Delta L$. Calculus tells us that
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \Delta L \approx \nabla_{\boldsymbol{w}} L \cdot \Delta \boldsymbol{w} +
+                    \nabla_{\boldsymbol{b}} L \cdot \Delta \boldsymbol{b}
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        We can see from these expressions that, if we let $\Delta \boldsymbol{w} = -\eta \nabla_{\boldsymbol{w}} L$ and $\Delta \boldsymbol{b} = -\eta \nabla_{\boldsymbol{b}} L$, we're guaranteed to get back a negative value for $\Delta L$, and consequently, a lower value of $L$. Note that the $\eta$ is any number small enough to justify the approximation we make in the above equation. Thus, each iteration, we'll simply update the weights and biases according to
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \boldsymbol{w} \leftarrow \boldsymbol{w} - \eta \nabla_{\boldsymbol{w}} L \\
+                    \boldsymbol{b} \leftarrow \boldsymbol{b} - \eta \nabla_{\boldsymbol{b}} L \\
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        Therefore, we must simply follow the above update rules for some number of iterations. The question is, <i>How do we find $\nabla_{\boldsymbol{w}} L$ and $\nabla_{\boldsymbol{b}} L$?</i>
+                    </p>
+
+                    <h4>Back Propagation and the Chain Rule</h4>
+                    <p>
+                        Imagine we had a neural network consisting of $10$ layers. Let the superscript of the weights and biases indicate the index of the layer it belongs in. We've just passed in a training input, so we know the $\boldsymbol{y}$ values for each layer, as well as the inputs to the non-linearities, $\boldsymbol{z}$, at each layer. And, of course, we know $\boldsymbol{y}^{*} $, the final desired output. To find $\nabla_{\boldsymbol{w}^{(10)}} L = \frac{\partial L}{\partial \boldsymbol{w}^{(10)}}$ and $\nabla_{{\boldsymbol{b}}^{(10)}} L = \frac{\partial L}{\partial \boldsymbol{b}^{(10)}}$, all we have to do is utilize the chain rule to obtain
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \frac{\partial L}{\partial \boldsymbol{w}^{(10)}}
+                    = \boldsymbol{\delta}^{(10)} \frac{\partial \boldsymbol{y}^{(10)}}{\partial \boldsymbol{z}^{(10)}} \frac{\partial \boldsymbol{z}^{(10)}}{\partial \boldsymbol{w}^{(10)}} \\
+                    \frac{\partial L}{\partial \boldsymbol{b}^{(10)}}
+                    = \boldsymbol{\delta}^{(10)} \frac{\partial \boldsymbol{y}^{(10)}}{\partial \boldsymbol{z}^{(10)}} \frac{\partial \boldsymbol{z}^{(10)}}{\partial \boldsymbol{b}^{(10)}} \\
+                    \boldsymbol{\delta}^{(10)}
+                    = \frac{\partial L}{\partial \boldsymbol{y}^{(10)}}
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        In the case of our sigmoid activation function, we know this amounts to
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \frac{\partial L}{\partial \boldsymbol{w}^{(10)}}
+                    = \boldsymbol{\delta}^{(10)} \sigma'(\boldsymbol{z}^{(10)}) \boldsymbol{y}^{(9)}
+                    = \boldsymbol{\delta}^{(10)} \left( \sigma(\boldsymbol{z}^{(10)})(1 - \sigma(\boldsymbol{z}^{(10)})) \right) \boldsymbol{y}^{(9)}
+                    \\
+                    \frac{\partial L}{\partial \boldsymbol{b}^{(10)}}
+                    = \boldsymbol{\delta}^{(10)} \left( \sigma(\boldsymbol{z}^{(10)})(1 - \sigma(\boldsymbol{z}^{(10)})) \right) \\
+                    \boldsymbol{\delta}^{(10)}
+                    = \boldsymbol{y}^{(10)} - \boldsymbol{y}^{*}
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        We now have $\nabla_{\boldsymbol{w}^{(10)}} L$ and $\nabla_{{\boldsymbol{b}}^{(10)}} L$ terms to use in our updates for layer $10$. Now, we must finds the terms, $\nabla_{\boldsymbol{w}^{(9)}} L$ and $\nabla_{\boldsymbol{b}^{(9)}} L$. To do this, we again use the chain rule. The expression for layer $9$ is
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \frac{\partial L}{\partial \boldsymbol{w}^{(9)}}
+                    = \boldsymbol{\delta}^{(9)} \left( \sigma(\boldsymbol{z}^{(9)})(1 - \sigma(\boldsymbol{z}^{(9)})) \right) \boldsymbol{y}^{(8)} \\
+                    \frac{\partial L}{\partial \boldsymbol{b}^{(9)}}
+                    = \boldsymbol{\delta}^{(9)} \left( \sigma(\boldsymbol{z}^{(9)})(1 - \sigma(\boldsymbol{z}^{(9)})) \right)
+                    \\
+                    \boldsymbol{\delta}^{(9)}
+                    = \frac{\partial L}{\partial \boldsymbol{y}^{(9)}}
+                    = \frac{\partial L}{\partial \boldsymbol{y}^{(10)}}
+                    \frac{\partial \boldsymbol{y}^{(10)}}{\partial \boldsymbol{z}^{(10)}}
+                    \frac{\partial \boldsymbol{z}^{(10)}}{\partial \boldsymbol{y}^{(9)}}
+                    = \boldsymbol{\delta}^{(10)} \left( \sigma(\boldsymbol{z}^{(10)})(1 - \sigma(\boldsymbol{z}^{(10)})) \right) \boldsymbol{w^{(10)}}
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        Notice that layer $9$'s expression is identical to the one for layer $10$, except the $\boldsymbol{\delta}$ is updated. In fact, $\boldsymbol{\delta}^{(9)}$ relies on $\boldsymbol{\delta}^{(10)}$. By updating $\boldsymbol{\delta}$ for each preceding layer, we can efficiently compute each layer's $\nabla \boldsymbol{w}$ and $\nabla \boldsymbol{b}$ values. This process of storing and reusing the $\boldsymbol{\delta}$ values is called <i>back propagation</i>. The following is the calculations required to update layer $8$.
+                    </p>
+
+                    \begin{align*}
+                    \begin{split}
+                    \frac{\partial L}{\partial \boldsymbol{w}^{(8)}}
+                    = \boldsymbol{\delta}^{(8)} \left( \sigma(\boldsymbol{z}^{(8)})(1 - \sigma(\boldsymbol{z}^{(8)})) \right) \boldsymbol{y}^{(7)} \\
+                    \frac{\partial L}{\partial \boldsymbol{b}^{(8)}}
+                    = \boldsymbol{\delta}^{(8)} \left( \sigma(\boldsymbol{z}^{(8)})(1 - \sigma(\boldsymbol{z}^{(8)})) \right)
+                    \\
+                    \boldsymbol{\delta}^{(8)}
+                    = \frac{\partial L}{\partial \boldsymbol{y}^{(8)}}
+                    = \frac{\partial L}{\partial \boldsymbol{y}^{(9)}}
+                    \frac{\partial \boldsymbol{y}^{(9)}}{\partial \boldsymbol{z}^{(9)}}
+                    \frac{\partial \boldsymbol{z}^{(9)}}{\partial \boldsymbol{y}^{(8)}}
+                    = \boldsymbol{\delta}^{(9)} \left( \sigma(\boldsymbol{z}^{(9)})(1 - \sigma(\boldsymbol{z}^{(9)})) \right) \boldsymbol{w^{(9)}}
+                    \end{split}
+                    \end{align*}
+
+                    <p>
+                        As expected, the $\boldsymbol{\delta}$ value for layer $8$ is computed by using the $\boldsymbol{\delta}$ value for layer $9$. On a quick side note, be aware that most literature uses $\delta = \frac{\partial L}{\partial z}$ instead of $\delta = \frac{\partial L}{\partial y}$, since it becomes a little more computationally efficient. However, the derivations via the chain rule are nearly identical.
+                    </p>
+
+                    <h3>Conclusion</h3>
+                    <p>
+                        The basic ideas behind neural nets were:
+                    </p>
+                    <ul>
+                        <li>Feed training samples through the layers of matrix multiplications, vector additions, and non-linearities.</li>
+                        <li>Use back-propagation to calculate the gradient of the loss-function with respect to each of the parameters.</li>
+                        <li>Use the calculated gradients, along with any tiny $\eta$ value to update each parameter.</li>
+                    </ul>
+                    <p>
+                        I plan to build off this post by exploring other architectures of neural nets: convolutional nets, recurrent nets, long short-term memory units, etc. Meanwhile, I'll be working on a generic neural net implementation that incorporates not only feed-forward layers (as we've seen in this post), but convolutional, recurrent, and other neural layers. Here's the code for both <a href="https://github.com/kenk42292/mochi-python">python</a> and <a href="https://github.com/kenk42292/mochi">C++</a> neural network implementations.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/jquery.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+        <!-- Custom JavaScript -->
+        <script src="/js/custom.js"></script>
+    </body>
+</html>
+
+
+
+
+
+
