@@ -19,10 +19,17 @@
         <section id="demos">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-8 col-md-offset-2">
+                    <div class="col-md-4 col-md-offset-2">
                         <div class="section-title">
                             <h2>Projects and Demos</h2>
                         </div>
+                    </div>
+                    <div class="col-md-4 col-md-offset-1">
+                        <form class="navbar-form navbar-left">
+                            <div class="form-group">
+                                <input type="text" class="proj-demo-search-input form-control" placeholder="Search">
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -30,54 +37,65 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-md-8 col-md-offset-2">
-                            <a href="/content/projects-and-demos/convolutional-neural-nets/" class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h4 class="mb-1"> Convolutional Neural Networks</h4>
-                                    <small class="text-muted">July 22, 2016</small>
-                                </div>
-                                <p class="mb-1">
-                                    A walk-through of the basic framework of convolutional neural networks.
-                                </p>
-                            </a>
-                            <a href="/content/projects-and-demos/vanilla-neural-nets/" class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h4 class="mb-1"> Vanilla Neural Networks</h4>
-                                    <small class="text-muted">July 22, 2016</small>
-                                </div>
-                                <p class="mb-1">
-                                    A walk-through of the basic framework of vanilla neural networks.
-                                </p>
-                            </a>
-                            <a href="/content/projects-and-demos/quadcopter-attitude-emulation/" class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h4 class="mb-1"> Quadcopter 3 </h4>
-                                    <small class="text-muted">July 23, 2015</small>
-                                </div>
-                                <p class="mb-1">
-                                    An on-screen emulation of the attitude of a physical quadcopter, with measurements from a gyroscope and accelerometer converted to quaternion parameters
-                                </p>
-                            </a>
-                            <a href="/content/projects-and-demos/angular-pacman" class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h4 class="mb-1">Angular Pacman</h4>
-                                    <small class="text-muted">Oct 28, 2016</small>
-                                </div>
-                                <p class="mb-1">A simple game of Pacman, implemented with Angular.js</p>
-                            </a>
-                            <a href="/content/projects-and-demos/quadcopter-quaternion-lagrangian/" class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h4 class="mb-1">Quadcopter 2</h4>
-                                    <small class="text-muted">July 22, 2016</small>
-                                </div>
-                                <p class="mb-1">Quadcopter Dynamics and Control Simulation using Quaternions and the Lagrangian Equations of Motion.</p>
-                            </a>
-                            <a href="/content/projects-and-demos/quadcopter-euler-lagrangian/" class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h4 class="mb-1">Quadcopter 1</h4>
-                                    <small>July 12, 2016</small>
-                                </div>
-                                <p class="mb-1">Quadcopter Dynamics Simulation using Euler Angles and the Lagrangian Equations of Motion.</p>
-                            </a>
+                            <div class="card">
+                                <a href="/content/projects-and-demos/convolutional-neural-nets/" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h4 class="mb-1 entry-title"> Convolutional Neural Networks</h4>
+                                        <small class="text-muted">July 22, 2016</small>
+                                    </div>
+                                    <p class="mb-1 entry-desc">
+                                        A walk-through of the basic framework of convolutional neural networks.
+                                    </p>
+                                </a>
+                            </div>
+                            <div class="card">
+                                <a href="/content/projects-and-demos/vanilla-neural-nets/" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h4 class="mb-1 entry-title"> Vanilla Neural Networks</h4>
+                                        <small class="text-muted">July 22, 2016</small>
+                                    </div>
+                                    <p class="mb-1 entry-desc">
+                                        A walk-through of the basic framework of vanilla neural networks.
+                                    </p>
+                                </a></div>
+                            <div class="card">
+                                <a href="/content/projects-and-demos/quadcopter-attitude-emulation/" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h4 class="mb-1 entry-title"> Quadcopter 3 </h4>
+                                        <small class="text-muted">July 23, 2015</small>
+                                    </div>
+                                    <p class="mb-1 entry-desc">
+                                        An on-screen emulation of the attitude of a physical quadcopter, with measurements from a gyroscope and accelerometer converted to quaternion parameters
+                                    </p>
+                                </a>
+                            </div>
+                            <div class="card">
+                                <a href="/content/projects-and-demos/angular-pacman" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h4 class="mb-1 entry-title">Angular Pacman</h4>
+                                        <small class="text-muted">Oct 28, 2016</small>
+                                    </div>
+                                    <p class="mb-1 entry-desc">A simple game of Pacman, implemented with Angular.js</p>
+                                </a>
+                            </div>
+                            <div class="card">
+                                <a href="/content/projects-and-demos/quadcopter-quaternion-lagrangian/" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h4 class="mb-1 entry-title">Quadcopter 2</h4>
+                                        <small class="text-muted">July 22, 2016</small>
+                                    </div>
+                                    <p class="mb-1 entry-desc">Quadcopter Dynamics and Control Simulation using Quaternions and the Lagrangian Equations of Motion.</p>
+                                </a>
+                            </div>
+                            <div class="card">
+                                <a href="/content/projects-and-demos/quadcopter-euler-lagrangian/" class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h4 class="mb-1 entry-title">Quadcopter 1</h4>
+                                        <small>July 12, 2016</small>
+                                    </div>
+                                    <p class="mb-1 entry-desc">Quadcopter Dynamics Simulation using Euler Angles and the Lagrangian Equations of Motion.</p>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -91,5 +109,6 @@
 
         <!-- Custom JavaScript -->
         <script src="/js/custom.js"></script>
+        <script src="/content/projects-and-demos/custom.js"></script>
     </body>
 </html>

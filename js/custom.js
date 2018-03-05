@@ -19,3 +19,11 @@ $(document).ready(function() {
         $(this).parent().addClass("active");
     })
 })
+
+/* Extension of contains jquery selector to be case-insensitve */
+$.expr[":"].containsi = $.expr.createPseudo(function(arg) {
+    return function( elem ) {
+        return $(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+    };
+});
+
