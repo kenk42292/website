@@ -1,0 +1,29 @@
+
+.row {
+    padding-top: 20px;
+    padding-bottom: 30px;
+}
+
+/* Title */
+#title {
+   font-size: 30px; 
+}
+
+img {
+    max-width: 100%;
+}
+
+.transition {
+    padding-top: 30px;
+}
+
+.col-md-1,
+.col-md-2 {
+    padding: 0;
+}
+
+
+
+
+
+

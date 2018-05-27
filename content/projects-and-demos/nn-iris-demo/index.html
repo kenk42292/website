@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Neural Net - Iris Demo</title>
+
+        <meta charset="utf-8">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i|Source+Sans+Pro:300,300i,400,400i,600,600i,700,700i,900,900i" rel="stylesheet">
+
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+
+        <!-- MathJax -->
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: {
+                    TagSide: "right"
+                },
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+                    processEscapes: true
+                },
+                jax: ["input/TeX", "output/CHTML"],
+                CommonHTML: {
+                    scale: 70,
+                    linebreaks: { automatic: true },
+                    width: "100% container"
+                }
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="header-wrapper">
+        </div>
+
+        <!-- Project Content -->
+        <div class="container">
+            <div class="row"> <!-- Title -->
+                <div class="col-md-8 col-md-offset-4">
+                    <h2 id="title">Iris DataSet Demo Net</h2>
+                </div>
+            </div>
+            <div>
+                <p>
+                    The following is a simple neural network I made for demonstration purposes. The network trains on a subset of the famous iris dataset found <a href="https://archive.ics.uci.edu/ml/datasets/iris">here</a>.
+                </p>
+                <br>
+                <h4>Training</h4>
+                <p>
+                    Use the <b>Initialize</b> button to give random values to the neural net matrices' entries, and to reset the step-size for RMSProp gradient descent. The <b>Next Sample</b> button proceeds to the next <i>x-y*</i> pair, and the <b>Predict</b> button lets us see what the neural net, with its current parameters, would predict for the current <i>x</i>. After making a prediction for a given sample, the <b>Adjust</b> button should be used to utilize back-propagation to adjust the neural net matrices' entries appropriately. Finally, the <b>Train</b> button lets us iterate through 1000 cycles of <b>Next Sample</b>, <b>Predict</b>, and <b>Adjust</b>.
+                </p>
+                <br>
+                <h4>Validation</h4>
+                <p>
+                    After training the desired network, switch the <b>Mode</b> to Validation. Then, press the <b>Validate</b> button to obtain the validation accuracy of the network on a subset of the iris-dataset that was withheld during training.
+                </p>
+            </div>
+            <div class="row"> <!-- Net parameters -->
+                <div class="col-md-2 col-md-offset-5">
+                    <label>Number of Layers:</label>
+                    <select id="num-layers" onchange="changeNumLayers()">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Nonlinearity:</label>
+                    <select id="nonlin-type" onchange="changeNonLinearity()">
+                        <option value="linear">Linear</option>
+                        <option value="sigmoid">Sigmoid</option>
+                        <option value="softplus">Softplus</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Mode:</label>
+                    <select id="mode" onchange="changeMode()">
+                        <option value="training">Training</option>
+                        <option value="validation">Validation</option>
+                    </select>
+                </div>
+            </div>
+            <div id="net-1" class="row"> <!-- Single Layer -->
+                <div class="col-md-1">
+                    $$
+                    \begin{bmatrix}
+                    a \\
+                    b \\
+                    c \\
+                    d \\
+                    \end{bmatrix}
+                    $$
+                    <h5>$$x$$</h5>
+                </div>
+                <div class="col-md-1">
+                    <img class="transition" src="images/linear.png">
+                </div>
+                <div id="net-1-layer-1" class="col-md-2">
+                    $$
+                    *
+                    \begin{bmatrix}
+                    a & b & c & d \\
+                    d & e & f & e \\
+                    g & h & i & f \\
+                    \end{bmatrix}
+                    $$
+                    $$
+                    +
+                    \begin{bmatrix}
+                    a \\
+                    b \\
+                    c \\
+                    \end{bmatrix}
+                    $$
+                </div>
+                <div class="col-md-1">
+                    <img id="net-1-nonlin-1" class="transition" src="images/linear.png">
+                </div>
+                <div id="net-1-y" class="col-md-1">
+                    $$
+                    \begin{bmatrix}
+                    a \\ 
+                    b \\
+                    c \\
+                    \end{bmatrix}
+                    $$
+                    <h5>$$y(normed)$$</h5>
+                </div>
+                <div id="net-1-ystar" class="col-md-1">
+                    $$
+                    \begin{bmatrix}
+                    a* \\ 
+                    b* \\
+                    c* \\
+                    \end{bmatrix}
+                    $$
+                    <h5>$$y*$$</h5>
+                </div>
+
+            </div>
+            <div id="net-2" style="display:none" class="row">
+                <div class="col-md-1">
+                    $$
+                    \begin{bmatrix}
+                    a \\
+                    b \\
+                    c \\
+                    d \\
+                    \end{bmatrix}
+                    $$
+                    <h5>$$x$$</h5>
+                </div>
+                <div class="col-md-1">
+                    <img class="transition" src="images/linear.png">
+                </div>
+                <div id="net-2-layer-1" class="col-md-2">
+                    $$
+                    *
+                    \begin{bmatrix}
+                    a & b & c & d \\
+                    d & e & f & e \\
+                    g & h & i & f \\
+                    \end{bmatrix}
+                    $$
+                    $$
+                    +
+                    \begin{bmatrix}
+                    a \\
+                    b \\
+                    c \\
+                    \end{bmatrix}
+                    $$
+                </div>
+                <div class="col-md-1">
+                    <img id="net-2-nonlin-1" class="transition" src="images/linear.png">
+                </div>
+                <div id="net-2-layer-2" class="col-md-2">
+                    $$
+                    *
+                    \begin{bmatrix}
+                    a & b & c \\
+                    d & e & f \\
+                    g & h & i \\
+                    \end{bmatrix}
+                    $$
+                    $$
+                    +
+                    \begin{bmatrix}
+                    a \\
+                    b \\
+                    c \\
+                    \end{bmatrix}
+                    $$
+                </div>
+                <div class="col-md-1">
+                    <img id="net-2-nonlin-2" class="transition" src="images/linear.png">
+                </div>
+                <div id="net-2-y" class="col-md-1">
+                    $$
+                    \begin{bmatrix}
+                    a \\ 
+                    b \\
+                    c \\
+                    \end{bmatrix}
+                    $$
+                    <h5>$$y(normed)$$</h5>
+                </div>
+                <div id="net-2-ystar" class="col-md-1">
+                    $$
+                    \begin{bmatrix}
+                    a* \\ 
+                    b* \\
+                    c* \\
+                    \end{bmatrix}
+                    $$
+                    <h5>$$y*$$</h5>
+                </div>
+            </div>
+            <div class="row"> <!-- Controls -->
+                <div class="col-md-2 col-md-offset-2">
+                    <button class="btn btn-default" onclick="init()">Initialize</button>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-default" onclick="nextSample(true)">Next Sample</button>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-default" onclick="predict(true)">Predict</button>
+                </div>
+                <div class="col-md-2">
+                    <button id="adjust-button" class="btn btn-default" onclick="backprop(true)">Adjust</button>
+                    <button id="validate-button" class="btn btn-default" style="display:none" onclick="validate()">Validate</button>
+                </div>
+                <div class="col-md-2">
+                    <button id="train-button" class="btn btn-default" onclick="train(1000)">Train x 1000</button>
+                    <p id="accuracy" style="display:none" >Accuracy: </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/jquery.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+        <!-- Custom JavaScript -->
+        <script src="/js/custom.js"></script>
+        <script src="js/custom.js"></script>
+    </body>
+</html>
